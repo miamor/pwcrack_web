@@ -21,6 +21,3 @@ build/
 
 .idea/
 migrations/
-
-#data/*
-!data/.gitkeep
