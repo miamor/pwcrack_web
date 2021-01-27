@@ -32,10 +32,28 @@
                         </div>
                     </div>
 
+
+                    <div class="form-group">
+                        <label for="wordlists_path">Wordlists Path</label>
+                        <input name="wordlists_path" type="text" id="wordlists_path" class="form-control" value="{{ setting_get('wordlists_path', '') }}" placeholder="/path/to/wordlists" required>
+                    </div>
+        
                     <div class="form-group">
                         <label for="hashcat_rules_path">Hashcat Rules Path</label>
                         <input name="hashcat_rules_path" type="text" id="hashcat_rules_path" class="form-control" value="{{ setting_get('hashcat_rules_path', '') }}" placeholder="/path/to/hashcat/rules" required>
                     </div>
+
+                    <div class="form-group">
+                        <span>
+                            <label for="uploaded_hashes_path">Uploaded Hashes Path</label>
+                            <span class="text-primary" title="" data-container="body" data-toggle="popover" data-placement="left" data-content="This folder will be used in cases where the user wants to upload a very large hash file (ie from HIBP).<br>In this instance, users will upload the file via SSH and then select it from the front-end." data-original-title="Uploaded Hashes">
+                                <i class="fas fa-question-circle"></i>
+                            </span>
+                        </span>
+                        <input name="uploaded_hashes_path" type="text" id="uploaded_hashes_path" class="form-control" value="{{ setting_get('uploaded_hashes_path', '') }}" placeholder="/path/to/uploaded/hashes/folder">
+                        <div class="text-info small mt-2">Make sure all users have <b>write</b> access to this folder.</div>
+                    </div>
+    
 
                     <div class="form-group">
                         <button type="submit" class="btn btn-primary btn-block">save</button>

@@ -1,776 +1,873 @@
-class HashIdentifier:
-    """
-    This class has been ported/modified from https://github.com/blackploit/hash-identifier/blob/master/hash-id.py
-    """
-
-    def __init__(self):
-        self.algorithms = {"102020": "ADLER-32",
-                           "102040": "CRC-32",
-                           "102060": "CRC-32B",
-                           "101020": "CRC-16",
-                           "101040": "CRC-16-CCITT",
-                           "104020": "DES(Unix)",
-                           "101060": "FCS-16",
-                           "103040": "GHash-32-3",
-                           "103020": "GHash-32-5",
-                           "115060": "GOST R 34.11-94",
-                           "109100": "Haval-160",
-                           "109200": "Haval-160(HMAC)",
-                           "110040": "Haval-192",
-                           "110080": "Haval-192(HMAC)",
-                           "114040": "Haval-224",
-                           "114080": "Haval-224(HMAC)",
-                           "115040": "Haval-256",
-                           "115140": "Haval-256(HMAC)",
-                           "107080": "Lineage II C4",
-                           "106025": "Domain Cached Credentials - MD4(MD4(($pass)).(strtolower($username)))",
-                           "102080": "XOR-32",
-                           "105060": "MD5(Half)",
-                           "105040": "MD5(Middle)",
-                           "105020": "MySQL",
-                           "107040": "MD5(phpBB3)",
-                           "107060": "MD5(Unix)",
-                           "107020": "MD5(Wordpress)",
-                           "108020": "MD5(APR)",
-                           "106160": "Haval-128",
-                           "106165": "Haval-128(HMAC)",
-                           "106060": "MD2",
-                           "106120": "MD2(HMAC)",
-                           "106040": "MD4",
-                           "106100": "MD4(HMAC)",
-                           "106020": "MD5",
-                           "106080": "MD5(HMAC)",
-                           "106140": "MD5(HMAC(Wordpress))",
-                           "106029": "NTLM",
-                           "106027": "RAdmin v2.x",
-                           "106180": "RipeMD-128",
-                           "106185": "RipeMD-128(HMAC)",
-                           "106200": "SNEFRU-128",
-                           "106205": "SNEFRU-128(HMAC)",
-                           "106220": "Tiger-128",
-                           "106225": "Tiger-128(HMAC)",
-                           "106240": "md5($pass.$salt)",
-                           "106260": "md5($salt.'-'.md5($pass))",
-                           "106280": "md5($salt.$pass)",
-                           "106300": "md5($salt.$pass.$salt)",
-                           "106320": "md5($salt.$pass.$username)",
-                           "106340": "md5($salt.md5($pass))",
-                           "106360": "md5($salt.md5($pass).$salt)",
-                           "106380": "md5($salt.md5($pass.$salt))",
-                           "106400": "md5($salt.md5($salt.$pass))",
-                           "106420": "md5($salt.md5(md5($pass).$salt))",
-                           "106440": "md5($username.0.$pass)",
-                           "106460": "md5($username.LF.$pass)",
-                           "106480": "md5($username.md5($pass).$salt)",
-                           "106500": "md5(md5($pass))",
-                           "106520": "md5(md5($pass).$salt)",
-                           "106540": "md5(md5($pass).md5($salt))",
-                           "106560": "md5(md5($salt).$pass)",
-                           "106580": "md5(md5($salt).md5($pass))",
-                           "106600": "md5(md5($username.$pass).$salt)",
-                           "106620": "md5(md5(md5($pass)))",
-                           "106640": "md5(md5(md5(md5($pass))))",
-                           "106660": "md5(md5(md5(md5(md5($pass)))))",
-                           "106680": "md5(sha1($pass))",
-                           "106700": "md5(sha1(md5($pass)))",
-                           "106720": "md5(sha1(md5(sha1($pass))))",
-                           "106740": "md5(strtoupper(md5($pass)))",
-                           "109040": "MySQL5 - SHA-1(SHA-1($pass))",
-                           "109060": "MySQL 160bit - SHA-1(SHA-1($pass))",
-                           "109180": "RipeMD-160(HMAC)",
-                           "109120": "RipeMD-160",
-                           "109020": "SHA-1",
-                           "109140": "SHA-1(HMAC)",
-                           "109220": "SHA-1(MaNGOS)",
-                           "109240": "SHA-1(MaNGOS2)",
-                           "109080": "Tiger-160",
-                           "109160": "Tiger-160(HMAC)",
-                           "109260": "sha1($pass.$salt)",
-                           "109280": "sha1($salt.$pass)",
-                           "109300": "sha1($salt.md5($pass))",
-                           "109320": "sha1($salt.md5($pass).$salt)",
-                           "109340": "sha1($salt.sha1($pass))",
-                           "109360": "sha1($salt.sha1($salt.sha1($pass)))",
-                           "109380": "sha1($username.$pass)",
-                           "109400": "sha1($username.$pass.$salt)",
-                           "1094202": "sha1(md5($pass))",
-                           "109440": "sha1(md5($pass).$salt)",
-                           "109460": "sha1(md5(sha1($pass)))",
-                           "109480": "sha1(sha1($pass))",
-                           "109500": "sha1(sha1($pass).$salt)",
-                           "109520": "sha1(sha1($pass).substr($pass,0,3))",
-                           "109540": "sha1(sha1($salt.$pass))",
-                           "109560": "sha1(sha1(sha1($pass)))",
-                           "109580": "sha1(strtolower($username).$pass)",
-                           "110020": "Tiger-192",
-                           "110060": "Tiger-192(HMAC)",
-                           "112020": "md5($pass.$salt) - Joomla",
-                           "113020": "SHA-1(Django)",
-                           "114020": "SHA-224",
-                           "114060": "SHA-224(HMAC)",
-                           "115080": "RipeMD-256",
-                           "115160": "RipeMD-256(HMAC)",
-                           "115100": "SNEFRU-256",
-                           "115180": "SNEFRU-256(HMAC)",
-                           "115200": "SHA-256(md5($pass))",
-                           "115220": "SHA-256(sha1($pass))",
-                           "115020": "SHA-256",
-                           "115120": "SHA-256(HMAC)",
-                           "116020": "md5($pass.$salt) - Joomla",
-                           "116040": "SAM - (LM_hash:NT_hash)",
-                           "117020": "SHA-256(Django)",
-                           "118020": "RipeMD-320",
-                           "118040": "RipeMD-320(HMAC)",
-                           "119020": "SHA-384",
-                           "119040": "SHA-384(HMAC)",
-                           "120020": "SHA-256",
-                           "121020": "SHA-384(Django)",
-                           "122020": "SHA-512",
-                           "122060": "SHA-512(HMAC)",
-                           "122040": "Whirlpool",
-                           "122080": "Whirlpool(HMAC)"}
-
-    def __hash_CRC16(self, hash, output):
-        hs = '4607'
-        if len(hash) == len(hs) and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("101020")
-
-    def __hash_CRC16CCITT(self, hash, output):
-        hs = '3d08'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("101040")
-
-    def __hash_FCS16(self, hash, output):
-        hs = '0e5b'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("101060")
-
-    def __hash_CRC32(self, hash, output):
-        hs = 'b33fd057'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("102040")
-
-    def __hash_ADLER32(self, hash, output):
-        hs = '0607cb42'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("102020")
-
-    def __hash_CRC32B(self, hash, output):
-        hs = 'b764a0d9'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("102060")
-
-    def __hash_XOR32(self, hash, output):
-        hs = '0000003f'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("102080")
-
-    def __hash_GHash323(self, hash, output):
-        hs = '80000000'
-        if len(hash) == len(hs) and hash.isdigit() is True and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("103040")
-
-    def __hash_GHash325(self, hash, output):
-        hs = '85318985'
-        if len(hash) == len(hs) and hash.isdigit() is True and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("103020")
-
-    def __hash_DESUnix(self, hash, output):
-        hs = 'ZiY8YtDKXJwYQ'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False:
-            output.append("104020")
-
-    def __hash_MD5Half(self, hash, output):
-        hs = 'ae11fd697ec92c7c'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("105060")
-
-    def __hash_MD5Middle(self, hash, output):
-        hs = '7ec92c7c98de3fac'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("105040")
-
-    def __hash_MySQL(self, hash, output):
-        hs = '63cea4673fd25f46'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("105020")
-
-    def __hash_DomainCachedCredentials(self, hash, output):
-        hs = 'f42005ec1afe77967cbc83dce1b4d714'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106025")
-
-    def __hash_Haval128(self, hash, output):
-        hs = 'd6e3ec49aa0f138a619f27609022df10'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106160")
-
-    def __hash_Haval128HMAC(self, hash, output):
-        hs = '3ce8b0ffd75bc240fc7d967729cd6637'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106165")
-
-    def __hash_MD2(self, hash, output):
-        hs = '08bbef4754d98806c373f2cd7d9a43c4'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106060")
-
-    def __hash_MD2HMAC(self, hash, output):
-        hs = '4b61b72ead2b0eb0fa3b8a56556a6dca'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106120")
-
-    def __hash_MD4(self, hash, output):
-        hs = 'a2acde400e61410e79dacbdfc3413151'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106040")
-
-    def __hash_MD4HMAC(self, hash, output):
-        hs = '6be20b66f2211fe937294c1c95d1cd4f'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106100")
-
-    def __hash_MD5(self, hash, output):
-        hs = 'ae11fd697ec92c7c98de3fac23aba525'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106020")
-
-    def __hash_MD5HMAC(self, hash, output):
-        hs = 'd57e43d2c7e397bf788f66541d6fdef9'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106080")
-
-    def __hash_MD5HMACWordpress(self, hash, output):
-        hs = '3f47886719268dfa83468630948228f6'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106140")
-
-    def __hash_NTLM(self, hash, output):
-        hs = 'cc348bace876ea440a28ddaeb9fd3550'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106029")
-
-    def __hash_RAdminv2x(self, hash, output):
-        hs = 'baea31c728cbf0cd548476aa687add4b'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106027")
-
-    def __hash_RipeMD128(self, hash, output):
-        hs = '4985351cd74aff0abc5a75a0c8a54115'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106180")
-
-    def __hash_RipeMD128HMAC(self, hash, output):
-        hs = 'ae1995b931cf4cbcf1ac6fbf1a83d1d3'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106185")
-
-    def __hash_SNEFRU128(self, hash, output):
-        hs = '4fb58702b617ac4f7ca87ec77b93da8a'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106200")
-
-    def __hash_SNEFRU128HMAC(self, hash, output):
-        hs = '59b2b9dcc7a9a7d089cecf1b83520350'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106205")
-
-    def __hash_Tiger128(self, hash, output):
-        hs = 'c086184486ec6388ff81ec9f23528727'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106220")
-
-    def __hash_Tiger128HMAC(self, hash, output):
-        hs = 'c87032009e7c4b2ea27eb6f99723454b'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106225")
-
-    def __hash_md5passsalt(self, hash, output):
-        hs = '5634cc3b922578434d6e9342ff5913f7'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106240")
-
-    def __hash_md5saltmd5pass(self, hash, output):
-        hs = '245c5763b95ba42d4b02d44bbcd916f1'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106260")
-
-    def __hash_md5saltpass(self, hash, output):
-        hs = '22cc5ce1a1ef747cd3fa06106c148dfa'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106280")
-
-    def __hash_md5saltpasssalt(self, hash, output):
-        hs = '469e9cdcaff745460595a7a386c4db0c'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106300")
-
-    def __hash_md5saltpassusername(self, hash, output):
-        hs = '9ae20f88189f6e3a62711608ddb6f5fd'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106320")
-
-    def __hash_md5saltmd5pass(self, hash, output):
-        hs = 'aca2a052962b2564027ee62933d2382f'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106340")
-
-    def __hash_md5saltmd5passsalt(self, hash, output):
-        hs = 'de0237dc03a8efdf6552fbe7788b2fdd'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106360")
-
-    def __hash_md5saltmd5passsalt(self, hash, output):
-        hs = '5b8b12ca69d3e7b2a3e2308e7bef3e6f'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106380")
-
-    def __hash_md5saltmd5saltpass(self, hash, output):
-        hs = 'd8f3b3f004d387086aae24326b575b23'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106400")
-
-    def __hash_md5saltmd5md5passsalt(self, hash, output):
-        hs = '81f181454e23319779b03d74d062b1a2'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106420")
-
-    def __hash_md5username0pass(self, hash, output):
-        hs = 'e44a60f8f2106492ae16581c91edb3ba'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106440")
-
-    def __hash_md5usernameLFpass(self, hash, output):
-        hs = '654741780db415732eaee12b1b909119'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106460")
-
-    def __hash_md5usernamemd5passsalt(self, hash, output):
-        hs = '954ac5505fd1843bbb97d1b2cda0b98f'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106480")
-
-    def __hash_md5md5pass(self, hash, output):
-        hs = 'a96103d267d024583d5565436e52dfb3'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106500")
-
-    def __hash_md5md5passsalt(self, hash, output):
-        hs = '5848c73c2482d3c2c7b6af134ed8dd89'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106520")
-
-    def __hash_md5md5passmd5salt(self, hash, output):
-        hs = '8dc71ef37197b2edba02d48c30217b32'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106540")
-
-    def __hash_md5md5saltpass(self, hash, output):
-        hs = '9032fabd905e273b9ceb1e124631bd67'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106560")
-
-    def __hash_md5md5saltmd5pass(self, hash, output):
-        hs = '8966f37dbb4aca377a71a9d3d09cd1ac'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106580")
-
-    def __hash_md5md5usernamepasssalt(self, hash, output):
-        hs = '4319a3befce729b34c3105dbc29d0c40'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106600")
-
-    def __hash_md5md5md5pass(self, hash, output):
-        hs = 'ea086739755920e732d0f4d8c1b6ad8d'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106620")
-
-    def __hash_md5md5md5md5pass(self, hash, output):
-        hs = '02528c1f2ed8ac7d83fe76f3cf1c133f'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106640")
-
-    def __hash_md5md5md5md5md5pass(self, hash, output):
-        hs = '4548d2c062933dff53928fd4ae427fc0'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106660")
-
-    def __hash_md5sha1pass(self, hash, output):
-        hs = 'cb4ebaaedfd536d965c452d9569a6b1e'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106680")
-
-    def __hash_md5sha1md5pass(self, hash, output):
-        hs = '099b8a59795e07c334a696a10c0ebce0'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106700")
-
-    def __hash_md5sha1md5sha1pass(self, hash, output):
-        hs = '06e4af76833da7cc138d90602ef80070'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106720")
-
-    def __hash_md5strtouppermd5pass(self, hash, output):
-        hs = '519de146f1a658ab5e5e2aa9b7d2eec8'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("106740")
-
-    def __hash_LineageIIC4(self, hash, output):
-        hs = '0x49a57f66bd3d5ba6abda5579c264a0e4'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True and hash[0:2].find('0x') == 0:
-            output.append("107080")
-
-    def __hash_MD5phpBB3(self, hash, output):
-        hs = '$H$9kyOtE8CDqMJ44yfn9PFz2E.L2oVzL1'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is False and hash[0:3].find('$H$') == 0:
-            output.append("107040")
-
-    def __hash_MD5Unix(self, hash, output):
-        hs = '$1$cTuJH0Ju$1J8rI.mJReeMvpKUZbSlY/'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is False and hash[0:3].find('$1$') == 0:
-            output.append("107060")
-
-    def __hash_MD5Wordpress(self, hash, output):
-        hs = '$P$BiTOhOj3ukMgCci2juN0HRbCdDRqeh.'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is False and hash[0:3].find('$P$') == 0:
-            output.append("107020")
-
-    def __hash_MD5APR(self, hash, output):
-        hs = '$apr1$qAUKoKlG$3LuCncByN76eLxZAh/Ldr1'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash[0:4].find('$apr') == 0:
-            output.append("108020")
-
-    def __hash_Haval160(self, hash, output):
-        hs = 'a106e921284dd69dad06192a4411ec32fce83dbb'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109100")
-
-    def __hash_Haval160HMAC(self, hash, output):
-        hs = '29206f83edc1d6c3f680ff11276ec20642881243'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109200")
-
-    def __hash_MySQL5(self, hash, output):
-        hs = '9bb2fb57063821c762cc009f7584ddae9da431ff'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109040")
-
-    def __hash_MySQL160bit(self, hash, output):
-        hs = '*2470c0c06dee42fd1618bb99005adca2ec9d1e19'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is False and hash[0:1].find('*') == 0:
-            output.append("109060")
-
-    def __hash_RipeMD160(self, hash, output):
-        hs = 'dc65552812c66997ea7320ddfb51f5625d74721b'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109120")
-
-    def __hash_RipeMD160HMAC(self, hash, output):
-        hs = 'ca28af47653b4f21e96c1235984cb50229331359'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109180")
-
-    def __hash_SHA1(self, hash, output):
-        hs = '4a1d4dbc1e193ec3ab2e9213876ceb8f4db72333'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109020")
-
-    def __hash_SHA1HMAC(self, hash, output):
-        hs = '6f5daac3fee96ba1382a09b1ba326ca73dccf9e7'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109140")
-
-    def __hash_SHA1MaNGOS(self, hash, output):
-        hs = 'a2c0cdb6d1ebd1b9f85c6e25e0f8732e88f02f96'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109220")
-
-    def __hash_SHA1MaNGOS2(self, hash, output):
-        hs = '644a29679136e09d0bd99dfd9e8c5be84108b5fd'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109240")
-
-    def __hash_Tiger160(self, hash, output):
-        hs = 'c086184486ec6388ff81ec9f235287270429b225'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109080")
-
-    def __hash_Tiger160HMAC(self, hash, output):
-        hs = '6603161719da5e56e1866e4f61f79496334e6a10'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109160")
-
-    def __hash_sha1passsalt(self, hash, output):
-        hs = 'f006a1863663c21c541c8d600355abfeeaadb5e4'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109260")
-
-    def __hash_sha1saltpass(self, hash, output):
-        hs = '299c3d65a0dcab1fc38421783d64d0ecf4113448'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109280")
-
-    def __hash_sha1saltmd5pass(self, hash, output):
-        hs = '860465ede0625deebb4fbbedcb0db9dc65faec30'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109300")
-
-    def __hash_sha1saltmd5passsalt(self, hash, output):
-        hs = '6716d047c98c25a9c2cc54ee6134c73e6315a0ff'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109320")
-
-    def __hash_sha1saltsha1pass(self, hash, output):
-        hs = '58714327f9407097c64032a2fd5bff3a260cb85f'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109340")
-
-    def __hash_sha1saltsha1saltsha1pass(self, hash, output):
-        hs = 'cc600a2903130c945aa178396910135cc7f93c63'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109360")
-
-    def __hash_sha1usernamepass(self, hash, output):
-        hs = '3de3d8093bf04b8eb5f595bc2da3f37358522c9f'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109380")
-
-    def __hash_sha1usernamepasssalt(self, hash, output):
-        hs = '00025111b3c4d0ac1635558ce2393f77e94770c5'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109400")
-
-    def __hash_sha1md5pass(self, hash, output):
-        hs = 'fa960056c0dea57de94776d3759fb555a15cae87'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("1094202")
-
-    def __hash_sha1md5passsalt(self, hash, output):
-        hs = '1dad2b71432d83312e61d25aeb627593295bcc9a'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109440")
-
-    def __hash_sha1md5sha1pass(self, hash, output):
-        hs = '8bceaeed74c17571c15cdb9494e992db3c263695'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109460")
-
-    def __hash_sha1sha1pass(self, hash, output):
-        hs = '3109b810188fcde0900f9907d2ebcaa10277d10e'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109480")
-
-    def __hash_sha1sha1passsalt(self, hash, output):
-        hs = '780d43fa11693b61875321b6b54905ee488d7760'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109500")
-
-    def __hash_sha1sha1passsubstrpass03(self, hash, output):
-        hs = '5ed6bc680b59c580db4a38df307bd4621759324e'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109520")
-
-    def __hash_sha1sha1saltpass(self, hash, output):
-        hs = '70506bac605485b4143ca114cbd4a3580d76a413'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109540")
-
-    def __hash_sha1sha1sha1pass(self, hash, output):
-        hs = '3328ee2a3b4bf41805bd6aab8e894a992fa91549'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109560")
-
-    def __hash_sha1strtolowerusernamepass(self, hash, output):
-        hs = '79f575543061e158c2da3799f999eb7c95261f07'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("109580")
-
-    def __hash_Haval192(self, hash, output):
-        hs = 'cd3a90a3bebd3fa6b6797eba5dab8441f16a7dfa96c6e641'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("110040")
-
-    def __hash_Haval192HMAC(self, hash, output):
-        hs = '39b4d8ecf70534e2fd86bb04a877d01dbf9387e640366029'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("110080")
-
-    def __hash_Tiger192(self, hash, output):
-        hs = 'c086184486ec6388ff81ec9f235287270429b2253b248a70'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("110020")
-
-    def __hash_Tiger192HMAC(self, hash, output):
-        hs = '8e914bb64353d4d29ab680e693272d0bd38023afa3943a41'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("110060")
-
-    def __hash_MD5passsaltjoomla1(self, hash, output):
-        hs = '35d1c0d69a2df62be2df13b087343dc9:BeKMviAfcXeTPTlX'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is False and hash[32:33].find(':') == 0:
-            output.append("112020")
-
-    def __hash_SHA1Django(self, hash, output):
-        hs = 'sha1$Zion3R$299c3d65a0dcab1fc38421783d64d0ecf4113448'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is False and hash[0:5].find('sha1$') == 0:
-            output.append("113020")
-
-    def __hash_Haval224(self, hash, output):
-        hs = 'f65d3c0ef6c56f4c74ea884815414c24dbf0195635b550f47eac651a'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("114040")
-
-    def __hash_Haval224HMAC(self, hash, output):
-        hs = 'f10de2518a9f7aed5cf09b455112114d18487f0c894e349c3c76a681'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("114080")
-
-    def __hash_SHA224(self, hash, output):
-        hs = 'e301f414993d5ec2bd1d780688d37fe41512f8b57f6923d054ef8e59'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("114020")
-
-    def __hash_SHA224HMAC(self, hash, output):
-        hs = 'c15ff86a859892b5e95cdfd50af17d05268824a6c9caaa54e4bf1514'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("114060")
-
-    def __hash_SHA256(self, hash, output):
-        hs = '2c740d20dab7f14ec30510a11f8fd78b82bc3a711abe8a993acdb323e78e6d5e'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("115020")
-
-    def __hash_SHA256HMAC(self, hash, output):
-        hs = 'd3dd251b7668b8b6c12e639c681e88f2c9b81105ef41caccb25fcde7673a1132'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("115120")
-
-    def __hash_Haval256(self, hash, output):
-        hs = '7169ecae19a5cd729f6e9574228b8b3c91699175324e6222dec569d4281d4a4a'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("115040")
-
-    def __hash_Haval256HMAC(self, hash, output):
-        hs = '6aa856a2cfd349fb4ee781749d2d92a1ba2d38866e337a4a1db907654d4d4d7a'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("115140")
-
-    def __hash_GOSTR341194(self, hash, output):
-        hs = 'ab709d384cce5fda0793becd3da0cb6a926c86a8f3460efb471adddee1c63793'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("115060")
-
-    def __hash_RipeMD256(self, hash, output):
-        hs = '5fcbe06df20ce8ee16e92542e591bdea706fbdc2442aecbf42c223f4461a12af'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("115080")
-
-    def __hash_RipeMD256HMAC(self, hash, output):
-        hs = '43227322be1b8d743e004c628e0042184f1288f27c13155412f08beeee0e54bf'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("115160")
-
-    def __hash_SNEFRU256(self, hash, output):
-        hs = '3a654de48e8d6b669258b2d33fe6fb179356083eed6ff67e27c5ebfa4d9732bb'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("115100")
-
-    def __hash_SNEFRU256HMAC(self, hash, output):
-        hs = '4e9418436e301a488f675c9508a2d518d8f8f99e966136f2dd7e308b194d74f9'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("115180")
-
-    def __hash_SHA256md5pass(self, hash, output):
-        hs = 'b419557099cfa18a86d1d693e2b3b3e979e7a5aba361d9c4ec585a1a70c7bde4'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("115200")
-
-    def __hash_SHA256sha1pass(self, hash, output):
-        hs = 'afbed6e0c79338dbfe0000efe6b8e74e3b7121fe73c383ae22f5b505cb39c886'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("115220")
-
-    def __hash_MD5passsaltjoomla2(self, hash, output):
-        hs = 'fb33e01e4f8787dc8beb93dac4107209:fxJUXVjYRafVauT77Cze8XwFrWaeAYB2'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is False and hash[32:33].find(':') == 0:
-            output.append("116020")
-
-    def __hash_SAM(self, hash, output):
-        hs = '4318B176C3D8E3DEAAD3B435B51404EE:B7C899154197E8A2A33121D76A240AB5'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is False and hash.islower() is False and hash[32:33].find(':') == 0:
-            output.append("116040")
-
-    def __hash_SHA256Django(self, hash, output):
-        hs = 'sha256$Zion3R$9e1a08aa28a22dfff722fad7517bae68a55444bb5e2f909d340767cec9acf2c3'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is False and hash[0:6].find('sha256') == 0:
-            output.append("117020")
-
-    def __hash_RipeMD320(self, hash, output):
-        hs = 'b4f7c8993a389eac4f421b9b3b2bfb3a241d05949324a8dab1286069a18de69aaf5ecc3c2009d8ef'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("118020")
-
-    def __hash_RipeMD320HMAC(self, hash, output):
-        hs = '244516688f8ad7dd625836c0d0bfc3a888854f7c0161f01de81351f61e98807dcd55b39ffe5d7a78'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("118040")
-
-    def __hash_SHA384(self, hash, output):
-        hs = '3b21c44f8d830fa55ee9328a7713c6aad548fe6d7a4a438723a0da67c48c485220081a2fbc3e8c17fd9bd65f8d4b4e6b'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("119020")
-
-    def __hash_SHA384HMAC(self, hash, output):
-        hs = 'bef0dd791e814d28b4115eb6924a10beb53da47d463171fe8e63f68207521a4171219bb91d0580bca37b0f96fddeeb8b'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("119040")
-
-    def __hash_SHA256s(self, hash, output):
-        hs = '$6$g4TpUQzk$OmsZBJFwvy6MwZckPvVYfDnwsgktm2CckOlNJGy9HNwHSuHFvywGIuwkJ6Bjn3kKbB6zoyEjIYNMpHWBNxJ6g.'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is False and hash[0:3].find('$6$') == 0:
-            output.append("120020")
-
-    def __hash_SHA384Django(self, hash, output):
-        hs = 'sha384$Zion3R$88cfd5bc332a4af9f09aa33a1593f24eddc01de00b84395765193c3887f4deac46dc723ac14ddeb4d3a9b958816b7bba'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is False and hash[0:6].find('sha384') == 0:
-            output.append("121020")
-
-    def __hash_SHA512(self, hash, output):
-        hs = 'ea8e6f0935b34e2e6573b89c0856c81b831ef2cadfdee9f44eb9aa0955155ba5e8dd97f85c73f030666846773c91404fb0e12fb38936c56f8cf38a33ac89a24e'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("122020")
-
-    def __hash_SHA512HMAC(self, hash, output):
-        hs = 'dd0ada8693250b31d9f44f3ec2d4a106003a6ce67eaa92e384b356d1b4ef6d66a818d47c1f3a2c6e8a9a9b9bdbd28d485e06161ccd0f528c8bbb5541c3fef36f'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("122060")
-
-    def __hash_Whirlpool(self, hash, output):
-        hs = '76df96157e632410998ad7f823d82930f79a96578acc8ac5ce1bfc34346cf64b4610aefa8a549da3f0c1da36dad314927cebf8ca6f3fcd0649d363c5a370dddb'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("122040")
-
-    def __hash_WhirlpoolHMAC(self, hash, output):
-        hs = '77996016cf6111e97d6ad31484bab1bf7de7b7ee64aebbc243e650a75a2f9256cef104e504d3cf29405888fca5a231fcac85d36cd614b1d52fce850b53ddf7f9'
-        if len(hash) == len(hs) and hash.isdigit() is False and hash.isalpha() is False and hash.isalnum() is True:
-            output.append("122080")
-
-    def guess(self, hash, matches=2):
-        output = []
-
-        # We get all the methods of this class. This is a way to prevent us from having to call each function manually.
-        methods = dir(self)
-        for method in methods:
-            # If the function starts with _CLASSNAME__hash_ (private method), run it.
-            if method[:22] == '_HashIdentifier__hash_':
-                getattr(self, method)(hash, output)
-
-        output.sort()
-
-        guesses = []
-        for i in range(matches):
-            algo = output[i] if i < len(output) else ''
-            if len(algo) > 0:
-                guesses.append(self.algorithms[str(output[i])])
-
-        return guesses
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# hashid.py - Software to identify the different types of hashes
+# Copyright (C) 2013-2015 by c0re <c0re@psypanda.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import io
+import os
+import re
+import sys
+import argparse
+from collections import namedtuple
+
+__author__  = "c0re"
+__version__ = "3.2.0-dev"
+__github__  = "https://github.com/psypanda/hashID"
+__license__ = "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>"
+__banner__  = "hashID v{0} by {1} ({2})".format(__version__, __author__, __github__)
+
+Prototype = namedtuple('Prototype', ['regex', 'modes'])
+HashInfo = namedtuple('HashInfo', ['name', 'hashcat', 'john', 'extended'])
+
+prototypes = [
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{4}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='CRC-16', hashcat=None, john=None, extended=False),
+            HashInfo(name='CRC-16-CCITT', hashcat=None, john=None, extended=False),
+            HashInfo(name='FCS-16', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{8}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Adler-32', hashcat=None, john=None, extended=False),
+            HashInfo(name='CRC-32B', hashcat=None, john=None, extended=False),
+            HashInfo(name='FCS-32', hashcat=None, john=None, extended=False),
+            HashInfo(name='GHash-32-3', hashcat=None, john=None, extended=False),
+            HashInfo(name='GHash-32-5', hashcat=None, john=None, extended=False),
+            HashInfo(name='FNV-132', hashcat=None, john=None, extended=False),
+            HashInfo(name='Fletcher-32', hashcat=None, john=None, extended=False),
+            HashInfo(name='Joaat', hashcat=None, john=None, extended=False),
+            HashInfo(name='ELF-32', hashcat=None, john=None, extended=False),
+            HashInfo(name='XOR-32', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{6}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='CRC-24', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^(\$crc32\$[a-f0-9]{8}.)?[a-f0-9]{8}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='CRC-32', hashcat=None, john='crc32', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\+[a-z0-9\/.]{12}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Eggdrop IRC Bot', hashcat=None, john='bfegg', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-z0-9\/.]{13}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='DES(Unix)', hashcat=1500, john='descrypt', extended=False),
+            HashInfo(name='Traditional DES', hashcat=1500, john='descrypt', extended=False),
+            HashInfo(name='DEScrypt', hashcat=1500, john='descrypt', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{16}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='MySQL323', hashcat=200, john='mysql', extended=False),
+            HashInfo(name='DES(Oracle)', hashcat=3100, john=None, extended=False),
+            HashInfo(name='Half MD5', hashcat=5100, john=None, extended=False),
+            HashInfo(name='Oracle 7-10g', hashcat=3100, john=None, extended=False),
+            HashInfo(name='FNV-164', hashcat=None, john=None, extended=False),
+            HashInfo(name='CRC-64', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-z0-9\/.]{16}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Cisco-PIX(MD5)', hashcat=2400, john='pix-md5', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\([a-z0-9\/+]{20}\)$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Lotus Notes/Domino 6', hashcat=8700, john='dominosec', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^_[a-z0-9\/.]{19}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='BSDi Crypt', hashcat=None, john='bsdicrypt', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{24}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='CRC-96(ZIP)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-z0-9\/.]{24}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Crypt16', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^(\$md2\$)?[a-f0-9]{32}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='MD2', hashcat=None, john='md2', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{32}(:.+)?$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='MD5', hashcat=0, john='raw-md5', extended=False),
+            HashInfo(name='MD4', hashcat=900, john='raw-md4', extended=False),
+            HashInfo(name='Double MD5', hashcat=2600, john=None, extended=False),
+            HashInfo(name='LM', hashcat=3000, john='lm', extended=False),
+            HashInfo(name='RIPEMD-128', hashcat=None, john='ripemd-128', extended=False),
+            HashInfo(name='Haval-128', hashcat=None, john='haval-128-4', extended=False),
+            HashInfo(name='Tiger-128', hashcat=None, john=None, extended=False),
+            HashInfo(name='Skein-256(128)', hashcat=None, john=None, extended=False),
+            HashInfo(name='Skein-512(128)', hashcat=None, john=None, extended=False),
+            HashInfo(name='Lotus Notes/Domino 5', hashcat=8600, john='lotus5', extended=False),
+            HashInfo(name='Skype', hashcat=23, john=None, extended=False),
+            HashInfo(name='ZipMonster', hashcat=None, john=None, extended=True),
+            HashInfo(name='PrestaShop', hashcat=11000, john=None, extended=True),
+            HashInfo(name='md5(md5(md5($pass)))', hashcat=3500, john=None, extended=True),
+            HashInfo(name='md5(strtoupper(md5($pass)))', hashcat=4300, john=None, extended=True),
+            HashInfo(name='md5(sha1($pass))', hashcat=4400, john=None, extended=True),
+            HashInfo(name='md5($pass.$salt)', hashcat=10, john=None, extended=True),
+            HashInfo(name='md5($salt.$pass)', hashcat=20, john=None, extended=True),
+            HashInfo(name='md5(unicode($pass).$salt)', hashcat=30, john=None, extended=True),
+            HashInfo(name='md5($salt.unicode($pass))', hashcat=40, john=None, extended=True),
+            HashInfo(name='HMAC-MD5 (key = $pass)', hashcat=50, john='hmac-md5', extended=True),
+            HashInfo(name='HMAC-MD5 (key = $salt)', hashcat=60, john='hmac-md5', extended=True),
+            HashInfo(name='md5(md5($salt).$pass)', hashcat=3610, john=None, extended=True),
+            HashInfo(name='md5($salt.md5($pass))', hashcat=3710, john=None, extended=True),
+            HashInfo(name='md5($pass.md5($salt))', hashcat=3720, john=None, extended=True),
+            HashInfo(name='md5($salt.$pass.$salt)', hashcat=3810, john=None, extended=True),
+            HashInfo(name='md5(md5($pass).md5($salt))', hashcat=3910, john=None, extended=True),
+            HashInfo(name='md5($salt.md5($salt.$pass))', hashcat=4010, john=None, extended=True),
+            HashInfo(name='md5($salt.md5($pass.$salt))', hashcat=4110, john=None, extended=True),
+            HashInfo(name='md5($username.0.$pass)', hashcat=4210, john=None, extended=True)]),
+    Prototype(
+        regex=re.compile(r'^(\$snefru\$)?[a-f0-9]{32}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Snefru-128', hashcat=None, john='snefru-128', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^(\$NT\$)?[a-f0-9]{32}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='NTLM', hashcat=1000, john='nt', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^([^\\\/:*?"<>|]{1,20}:)?[a-f0-9]{32}(:[^\\\/:*?"<>|]{1,20})?$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Domain Cached Credentials', hashcat=1100, john='mscach', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^([^\\\/:*?"<>|]{1,20}:)?(\$DCC2\$10240#[^\\\/:*?"<>|]{1,20}#)?[a-f0-9]{32}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Domain Cached Credentials 2', hashcat=2100, john='mscach2', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^{SHA}[a-z0-9\/+]{27}=$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='SHA-1(Base64)', hashcat=101, john='nsldap', extended=False),
+            HashInfo(name='Netscape LDAP SHA', hashcat=101, john='nsldap', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$1\$[a-z0-9\/.]{0,8}\$[a-z0-9\/.]{22}(:.*)?$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='MD5 Crypt', hashcat=500, john='md5crypt', extended=False),
+            HashInfo(name='Cisco-IOS(MD5)', hashcat=500, john='md5crypt', extended=False),
+            HashInfo(name='FreeBSD MD5', hashcat=500, john='md5crypt', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^0x[a-f0-9]{32}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Lineage II C4', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$H\$[a-z0-9\/.]{31}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='phpBB v3.x', hashcat=400, john='phpass', extended=False),
+            HashInfo(name='Wordpress v2.6.0/2.6.1', hashcat=400, john='phpass', extended=False),
+            HashInfo(name="PHPass' Portable Hash", hashcat=400, john='phpass', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$P\$[a-z0-9\/.]{31}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name=u'Wordpress ≥ v2.6.2', hashcat=400, john='phpass', extended=False),
+            HashInfo(name=u'Joomla ≥ v2.5.18', hashcat=400, john='phpass', extended=False),
+            HashInfo(name="PHPass' Portable Hash", hashcat=400, john='phpass', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{32}:[a-z0-9]{2}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='osCommerce', hashcat=21, john=None, extended=False),
+            HashInfo(name='xt:Commerce', hashcat=21, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$apr1\$[a-z0-9\/.]{0,8}\$[a-z0-9\/.]{22}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='MD5(APR)', hashcat=1600, john=None, extended=False),
+            HashInfo(name='Apache MD5', hashcat=1600, john=None, extended=False),
+            HashInfo(name='md5apr1', hashcat=1600, john=None, extended=True)]),
+    Prototype(
+        regex=re.compile(r'^{smd5}[a-z0-9$\/.]{31}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='AIX(smd5)', hashcat=6300, john='aix-smd5', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{32}:[a-f0-9]{32}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='WebEdition CMS', hashcat=3721, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{32}:.{5}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name=u'IP.Board ≥ v2+', hashcat=2811, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{32}:.{8}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name=u'MyBB ≥ v1.2+', hashcat=2811, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-z0-9]{34}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='CryptoCurrency(Adress)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{40}(:.+)?$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='SHA-1', hashcat=100, john='raw-sha1', extended=False),
+            HashInfo(name='Double SHA-1', hashcat=4500, john=None, extended=False),
+            HashInfo(name='RIPEMD-160', hashcat=6000, john='ripemd-160', extended=False),
+            HashInfo(name='Haval-160', hashcat=None, john=None, extended=False),
+            HashInfo(name='Tiger-160', hashcat=None, john=None, extended=False),
+            HashInfo(name='HAS-160', hashcat=None, john=None, extended=False),
+            HashInfo(name='LinkedIn', hashcat=190, john='raw-sha1-linkedin', extended=False),
+            HashInfo(name='Skein-256(160)', hashcat=None, john=None, extended=False),
+            HashInfo(name='Skein-512(160)', hashcat=None, john=None, extended=False),
+            HashInfo(name='MangosWeb Enhanced CMS', hashcat=None, john=None, extended=True),
+            HashInfo(name='sha1(sha1(sha1($pass)))', hashcat=4600, john=None, extended=True),
+            HashInfo(name='sha1(md5($pass))', hashcat=4700, john=None, extended=True),
+            HashInfo(name='sha1($pass.$salt)', hashcat=110, john=None, extended=True),
+            HashInfo(name='sha1($salt.$pass)', hashcat=120, john=None, extended=True),
+            HashInfo(name='sha1(unicode($pass).$salt)', hashcat=130, john=None, extended=True),
+            HashInfo(name='sha1($salt.unicode($pass))', hashcat=140, john=None, extended=True),
+            HashInfo(name='HMAC-SHA1 (key = $pass)', hashcat=150, john='hmac-sha1', extended=True),
+            HashInfo(name='HMAC-SHA1 (key = $salt)', hashcat=160, john='hmac-sha1', extended=True),
+            HashInfo(name='sha1($salt.$pass.$salt)', hashcat=4710, john=None, extended=True)]),
+    Prototype(
+        regex=re.compile(r'^\*[a-f0-9]{40}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='MySQL5.x', hashcat=300, john='mysql-sha1', extended=False),
+            HashInfo(name='MySQL4.1', hashcat=300, john='mysql-sha1', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-z0-9]{43}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Cisco-IOS(SHA-256)', hashcat=5700, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^{SSHA}[a-z0-9\/+]{38}==$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='SSHA-1(Base64)', hashcat=111, john='nsldaps', extended=False),
+            HashInfo(name='Netscape LDAP SSHA', hashcat=111, john='nsldaps', extended=False),
+            HashInfo(name='nsldaps', hashcat=111, john='nsldaps', extended=True)]),
+    Prototype(
+        regex=re.compile(r'^[a-z0-9=]{47}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Fortigate(FortiOS)', hashcat=7000, john='fortigate', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{48}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Haval-192', hashcat=None, john=None, extended=False),
+            HashInfo(name='Tiger-192', hashcat=None, john='tiger', extended=False),
+            HashInfo(name='SHA-1(Oracle)', hashcat=None, john=None, extended=False),
+            HashInfo(name='OSX v10.4', hashcat=122, john='xsha', extended=False),
+            HashInfo(name='OSX v10.5', hashcat=122, john='xsha', extended=False),
+            HashInfo(name='OSX v10.6', hashcat=122, john='xsha', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{51}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Palshop CMS', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-z0-9]{51}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='CryptoCurrency(PrivateKey)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^{ssha1}[0-9]{2}\$[a-z0-9$\/.]{44}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='AIX(ssha1)', hashcat=6700, john='aix-ssha1', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^0x0100[a-f0-9]{48}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='MSSQL(2005)', hashcat=132, john='mssql05', extended=False),
+            HashInfo(name='MSSQL(2008)', hashcat=132, john='mssql05', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^(\$md5,rounds=[0-9]+\$|\$md5\$rounds=[0-9]+\$|\$md5\$)[a-z0-9\/.]{0,16}(\$|\$\$)[a-z0-9\/.]{22}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Sun MD5 Crypt', hashcat=3300, john='sunmd5', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{56}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='SHA-224', hashcat=None, john='raw-sha224', extended=False),
+            HashInfo(name='Haval-224', hashcat=None, john=None, extended=False),
+            HashInfo(name='SHA3-224', hashcat=None, john=None, extended=False),
+            HashInfo(name='Skein-256(224)', hashcat=None, john=None, extended=False),
+            HashInfo(name='Skein-512(224)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^(\$2[axy]|\$2)\$[0-9]{2}\$[a-z0-9\/.]{53}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Blowfish(OpenBSD)', hashcat=3200, john='bcrypt', extended=False),
+            HashInfo(name='Woltlab Burning Board 4.x', hashcat=None, john=None, extended=False),
+            HashInfo(name='bcrypt', hashcat=3200, john='bcrypt', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{40}:[a-f0-9]{16}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Android PIN', hashcat=5800, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^(S:)?[a-f0-9]{40}(:)?[a-f0-9]{20}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Oracle 11g/12c', hashcat=112, john='oracle11', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$bcrypt-sha256\$(2[axy]|2)\,[0-9]+\$[a-z0-9\/.]{22}\$[a-z0-9\/.]{31}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='bcrypt(SHA-256)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{32}:.{3}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='vBulletin < v3.8.5', hashcat=2611, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{32}:.{30}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name=u'vBulletin ≥ v3.8.5', hashcat=2711, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^(\$snefru\$)?[a-f0-9]{64}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Snefru-256', hashcat=None, john='snefru-256', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{64}(:.+)?$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='SHA-256', hashcat=1400, john='raw-sha256', extended=False),
+            HashInfo(name='RIPEMD-256', hashcat=None, john=None, extended=False),
+            HashInfo(name='Haval-256', hashcat=None, john='haval-256-3', extended=False),
+            HashInfo(name='GOST R 34.11-94', hashcat=6900, john='gost', extended=False),
+            HashInfo(name='GOST CryptoPro S-Box', hashcat=None, john=None, extended=False),
+            HashInfo(name='SHA3-256', hashcat=5000, john='raw-keccak-256', extended=False),
+            HashInfo(name='Skein-256', hashcat=None, john='skein-256', extended=False),
+            HashInfo(name='Skein-512(256)', hashcat=None, john=None, extended=False),
+            HashInfo(name='Ventrilo', hashcat=None, john=None, extended=True),
+            HashInfo(name='sha256($pass.$salt)', hashcat=1410, john=None, extended=True),
+            HashInfo(name='sha256($salt.$pass)', hashcat=1420, john=None, extended=True),
+            HashInfo(name='sha256(unicode($pass).$salt)', hashcat=1430, john=None, extended=True),
+            HashInfo(name='sha256($salt.unicode($pass))', hashcat=1440, john=None, extended=True),
+            HashInfo(name='HMAC-SHA256 (key = $pass)', hashcat=1450, john='hmac-sha256', extended=True),
+            HashInfo(name='HMAC-SHA256 (key = $salt)', hashcat=1460, john='hmac-sha256', extended=True)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{32}:[a-z0-9]{32}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Joomla < v2.5.18', hashcat=11, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f-0-9]{32}:[a-f-0-9]{32}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='SAM(LM_Hash:NT_Hash)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^(\$chap\$0\*)?[a-f0-9]{32}[\*:][a-f0-9]{32}(:[0-9]{2})?$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='MD5(Chap)', hashcat=4800, john='chap', extended=False),
+            HashInfo(name='iSCSI CHAP Authentication', hashcat=4800, john='chap', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$episerver\$\*0\*[a-z0-9\/=+]+\*[a-z0-9\/=+]{27,28}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='EPiServer 6.x < v4', hashcat=141, john='episerver', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^{ssha256}[0-9]{2}\$[a-z0-9$\/.]{60}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='AIX(ssha256)', hashcat=6400, john='aix-ssha256', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{80}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='RIPEMD-320', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$episerver\$\*1\*[a-z0-9\/=+]+\*[a-z0-9\/=+]{42,43}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name=u'EPiServer 6.x ≥ v4', hashcat=1441, john='episerver', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^0x0100[a-f0-9]{88}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='MSSQL(2000)', hashcat=131, john='mssql', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{96}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='SHA-384', hashcat=10800, john='raw-sha384', extended=False),
+            HashInfo(name='SHA3-384', hashcat=None, john=None, extended=False),
+            HashInfo(name='Skein-512(384)', hashcat=None, john=None, extended=False),
+            HashInfo(name='Skein-1024(384)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^{SSHA512}[a-z0-9\/+]{96}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='SSHA-512(Base64)', hashcat=1711, john='ssha512', extended=False),
+            HashInfo(name='LDAP(SSHA-512)', hashcat=1711, john='ssha512', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^{ssha512}[0-9]{2}\$[a-z0-9\/.]{16,48}\$[a-z0-9\/.]{86}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='AIX(ssha512)', hashcat=6500, john='aix-ssha512', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{128}(:.+)?$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='SHA-512', hashcat=1700, john='raw-sha512', extended=False),
+            HashInfo(name='Whirlpool', hashcat=6100, john='whirlpool', extended=False),
+            HashInfo(name='Salsa10', hashcat=None, john=None, extended=False),
+            HashInfo(name='Salsa20', hashcat=None, john=None, extended=False),
+            HashInfo(name='SHA3-512', hashcat=None, john='raw-keccak', extended=False),
+            HashInfo(name='Skein-512', hashcat=None, john='skein-512', extended=False),
+            HashInfo(name='Skein-1024(512)', hashcat=None, john=None, extended=False),
+            HashInfo(name='sha512($pass.$salt)', hashcat=1710, john=None, extended=True),
+            HashInfo(name='sha512($salt.$pass)', hashcat=1720, john=None, extended=True),
+            HashInfo(name='sha512(unicode($pass).$salt)', hashcat=1730, john=None, extended=True),
+            HashInfo(name='sha512($salt.unicode($pass))', hashcat=1740, john=None, extended=True),
+            HashInfo(name='HMAC-SHA512 (key = $pass)', hashcat=1750, john='hmac-sha512', extended=True),
+            HashInfo(name='HMAC-SHA512 (key = $salt)', hashcat=1760, john='hmac-sha512', extended=True)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{136}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='OSX v10.7', hashcat=1722, john='xsha512', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^0x0200[a-f0-9]{136}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='MSSQL(2012)', hashcat=1731, john='msql12', extended=False),
+            HashInfo(name='MSSQL(2014)', hashcat=1731, john='msql12', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$ml\$[0-9]+\$[a-f0-9]{64}\$[a-f0-9]{128}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='OSX v10.8', hashcat=7100, john='pbkdf2-hmac-sha512', extended=False),
+            HashInfo(name='OSX v10.9', hashcat=7100, john='pbkdf2-hmac-sha512', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{256}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Skein-1024', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^grub\.pbkdf2\.sha512\.[0-9]+\.([a-f0-9]{128,2048}\.|[0-9]+\.)?[a-f0-9]{128}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='GRUB 2', hashcat=7200, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^sha1\$[a-z0-9]+\$[a-f0-9]{40}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Django(SHA-1)', hashcat=124, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{49}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Citrix Netscaler', hashcat=8100, john='citrix_ns10', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$S\$[a-z0-9\/.]{52}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Drupal > v7.x', hashcat=7900, john='drupal7', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$5\$(rounds=[0-9]+\$)?[a-z0-9\/.]{0,16}\$[a-z0-9\/.]{43}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='SHA-256 Crypt', hashcat=7400, john='sha256crypt', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^0x[a-f0-9]{4}[a-f0-9]{16}[a-f0-9]{64}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Sybase ASE', hashcat=8000, john='sybasease', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$6\$(rounds=[0-9]+\$)?[a-z0-9\/.]{0,16}\$[a-z0-9\/.]{86}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='SHA-512 Crypt', hashcat=1800, john='sha512crypt', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$sha\$[a-z0-9]{1,16}\$([a-f0-9]{32}|[a-f0-9]{40}|[a-f0-9]{64}|[a-f0-9]{128}|[a-f0-9]{140})$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Minecraft(AuthMe Reloaded)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^sha256\$[a-z0-9]+\$[a-f0-9]{64}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Django(SHA-256)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^sha384\$[a-z0-9]+\$[a-f0-9]{96}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Django(SHA-384)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^crypt1:[a-z0-9+=]{12}:[a-z0-9+=]{12}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Clavister Secure Gateway', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{112}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Cisco VPN Client(PCF-File)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{1329}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Microsoft MSTSC(RDP-File)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[^\\\/:*?"<>|]{1,20}[:]{2,3}([^\\\/:*?"<>|]{1,20})?:[a-f0-9]{48}:[a-f0-9]{48}:[a-f0-9]{16}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='NetNTLMv1-VANILLA / NetNTLMv1+ESS', hashcat=5500, john='netntlm', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^([^\\\/:*?"<>|]{1,20}\\)?[^\\\/:*?"<>|]{1,20}[:]{2,3}([^\\\/:*?"<>|]{1,20}:)?[^\\\/:*?"<>|]{1,20}:[a-f0-9]{32}:[a-f0-9]+$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='NetNTLMv2', hashcat=5600, john='netntlmv2', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$(krb5pa|mskrb5)\$([0-9]{2})?\$.+\$[a-f0-9]{1,}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Kerberos 5 AS-REQ Pre-Auth', hashcat=7500, john='krb5pa-md5', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$scram\$[0-9]+\$[a-z0-9\/.]{16}\$sha-1=[a-z0-9\/.]{27},sha-256=[a-z0-9\/.]{43},sha-512=[a-z0-9\/.]{86}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='SCRAM Hash', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{40}:[a-f0-9]{0,32}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Redmine Project Management Web App', hashcat=7600, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^(.+)?\$[a-f0-9]{16}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='SAP CODVN B (BCODE)', hashcat=7700, john='sapb', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^(.+)?\$[a-f0-9]{40}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='SAP CODVN F/G (PASSCODE)', hashcat=7800, john='sapg', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^(.+\$)?[a-z0-9\/.+]{30}(:.+)?$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Juniper Netscreen/SSG(ScreenOS)', hashcat=22, john='md5ns', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^0x[a-f0-9]{60}\s0x[a-f0-9]{40}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='EPi', hashcat=123, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{40}:[^*]{1,25}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name=u'SMF ≥ v1.1', hashcat=121, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^(\$wbb3\$\*1\*)?[a-f0-9]{40}[:*][a-f0-9]{40}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Woltlab Burning Board 3.x', hashcat=8400, john='wbb3', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{130}(:[a-f0-9]{40})?$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='IPMI2 RAKP HMAC-SHA1', hashcat=7300, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{32}:[0-9]+:[a-z0-9_.+-]+@[a-z0-9-]+\.[a-z0-9-.]+$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Lastpass', hashcat=6800, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-z0-9\/.]{16}([:$].{1,})?$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Cisco-ASA(MD5)', hashcat=2410, john='asa-md5', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$vnc\$\*[a-f0-9]{32}\*[a-f0-9]{32}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='VNC', hashcat=None, john='vnc', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-z0-9]{32}(:([a-z0-9-]+\.)?[a-z0-9-.]+\.[a-z]{2,7}:.+:[0-9]+)?$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='DNSSEC(NSEC3)', hashcat=8300, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^(user-.+:)?\$racf\$\*.+\*[a-f0-9]{16}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='RACF', hashcat=8500, john='racf', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$3\$\$[a-f0-9]{32}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='NTHash(FreeBSD Variant)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$sha1\$[0-9]+\$[a-z0-9\/.]{0,64}\$[a-z0-9\/.]{28}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='SHA-1 Crypt', hashcat=None, john='sha1crypt', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{70}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='hMailServer', hashcat=1421, john='hmailserver', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[:\$][AB][:\$]([a-f0-9]{1,8}[:\$])?[a-f0-9]{32}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='MediaWiki', hashcat=3711, john='mediawiki', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{140}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Minecraft(xAuth)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$pbkdf2(-sha1)?\$[0-9]+\$[a-z0-9\/.]+\$[a-z0-9\/.]{27}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='PBKDF2-SHA1(Generic)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$pbkdf2-sha256\$[0-9]+\$[a-z0-9\/.]+\$[a-z0-9\/.]{43}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='PBKDF2-SHA256(Generic)', hashcat=None, john='pbkdf2-hmac-sha256', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$pbkdf2-sha512\$[0-9]+\$[a-z0-9\/.]+\$[a-z0-9\/.]{86}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='PBKDF2-SHA512(Generic)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$p5k2\$[0-9]+\$[a-z0-9\/+=-]+\$[a-z0-9\/+-]{27}=$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='PBKDF2(Cryptacular)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$p5k2\$[0-9]+\$[a-z0-9\/.]+\$[a-z0-9\/.]{32}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='PBKDF2(Dwayne Litzenberger)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^{FSHP[0123]\|[0-9]+\|[0-9]+}[a-z0-9\/+=]+$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Fairly Secure Hashed Password', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$PHPS\$.+\$[a-f0-9]{32}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='PHPS', hashcat=2612, john='phps', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[0-9]{4}:[a-f0-9]{16}:[a-f0-9]{2080}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='1Password(Agile Keychain)', hashcat=6600, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{64}:[a-f0-9]{32}:[0-9]{5}:[a-f0-9]{608}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='1Password(Cloud Keychain)', hashcat=8200, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{256}:[a-f0-9]{256}:[a-f0-9]{16}:[a-f0-9]{16}:[a-f0-9]{320}:[a-f0-9]{16}:[a-f0-9]{40}:[a-f0-9]{40}:[a-f0-9]{32}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='IKE-PSK MD5', hashcat=5300, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{256}:[a-f0-9]{256}:[a-f0-9]{16}:[a-f0-9]{16}:[a-f0-9]{320}:[a-f0-9]{16}:[a-f0-9]{40}:[a-f0-9]{40}:[a-f0-9]{40}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='IKE-PSK SHA1', hashcat=5400, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-z0-9\/+]{27}=$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='PeopleSoft', hashcat=133, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^crypt\$[a-f0-9]{5}\$[a-z0-9\/.]{13}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Django(DES Crypt Wrapper)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^(\$django\$\*1\*)?pbkdf2_sha256\$[0-9]+\$[a-z0-9]+\$[a-z0-9\/+=]{44}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Django(PBKDF2-HMAC-SHA256)', hashcat=10000, john='django', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^pbkdf2_sha1\$[0-9]+\$[a-z0-9]+\$[a-z0-9\/+=]{28}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Django(PBKDF2-HMAC-SHA1)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^bcrypt(\$2[axy]|\$2)\$[0-9]{2}\$[a-z0-9\/.]{53}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Django(bcrypt)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^md5\$[a-f0-9]+\$[a-f0-9]{32}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Django(MD5)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\{PKCS5S2\}[a-z0-9\/+]{64}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='PBKDF2(Atlassian)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^md5[a-f0-9]{32}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='PostgreSQL MD5', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\([a-z0-9\/+]{49}\)$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Lotus Notes/Domino 8', hashcat=9100, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^SCRYPT:[0-9]{1,}:[0-9]{1}:[0-9]{1}:[a-z0-9:\/+=]{1,}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='scrypt', hashcat=8900, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$8\$[a-z0-9\/.]{14}\$[a-z0-9\/.]{43}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Cisco Type 8', hashcat=9200, john='cisco8', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$9\$[a-z0-9\/.]{14}\$[a-z0-9\/.]{43}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Cisco Type 9', hashcat=9300, john='cisco9', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$office\$\*2007\*[0-9]{2}\*[0-9]{3}\*[0-9]{2}\*[a-z0-9]{32}\*[a-z0-9]{32}\*[a-z0-9]{40}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Microsoft Office 2007', hashcat=9400, john='office', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$office\$\*2010\*[0-9]{6}\*[0-9]{3}\*[0-9]{2}\*[a-z0-9]{32}\*[a-z0-9]{32}\*[a-z0-9]{64}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Microsoft Office 2010', hashcat=9500, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$office\$\*2013\*[0-9]{6}\*[0-9]{3}\*[0-9]{2}\*[a-z0-9]{32}\*[a-z0-9]{32}\*[a-z0-9]{64}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Microsoft Office 2013', hashcat=9600, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$fde\$[0-9]{2}\$[a-f0-9]{32}\$[0-9]{2}\$[a-f0-9]{32}\$[a-f0-9]{3072}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name=u'Android FDE ≤ 4.3', hashcat=8800, john='fde', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$oldoffice\$[01]\*[a-f0-9]{32}\*[a-f0-9]{32}\*[a-f0-9]{32}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name=u'Microsoft Office ≤ 2003 (MD5+RC4)', hashcat=9700, john='oldoffice', extended=False),
+            HashInfo(name=u'Microsoft Office ≤ 2003 (MD5+RC4) collider-mode #1', hashcat=9710, john='oldoffice', extended=False),
+            HashInfo(name=u'Microsoft Office ≤ 2003 (MD5+RC4) collider-mode #2', hashcat=9720, john='oldoffice', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$oldoffice\$[34]\*[a-f0-9]{32}\*[a-f0-9]{32}\*[a-f0-9]{40}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name=u'Microsoft Office ≤ 2003 (SHA1+RC4)', hashcat=9800, john=None, extended=False),
+            HashInfo(name=u'Microsoft Office ≤ 2003 (SHA1+RC4) collider-mode #1', hashcat=9810, john=None, extended=False),
+            HashInfo(name=u'Microsoft Office ≤ 2003 (SHA1+RC4) collider-mode #2', hashcat=9820, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^(\$radmin2\$)?[a-f0-9]{32}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='RAdmin v2.x', hashcat=9900, john='radmin', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^{x-issha,\s[0-9]{4}}[a-z0-9\/+=]+$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='SAP CODVN H (PWDSALTEDHASH) iSSHA-1', hashcat=10300, john='saph', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$cram_md5\$[a-z0-9\/+=-]+\$[a-z0-9\/+=-]{52}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='CRAM-MD5', hashcat=10200, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{16}:2:4:[a-f0-9]{32}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='SipHash', hashcat=10100, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^[a-f0-9]{4,}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Cisco Type 7', hashcat=None, john=None, extended=True)]),
+    Prototype(
+        regex=re.compile(r'^[a-z0-9\/.]{13,}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='BigCrypt', hashcat=None, john='bigcrypt', extended=True)]),
+    Prototype(
+        regex=re.compile(r'^(\$cisco4\$)?[a-z0-9\/.]{43}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Cisco Type 4', hashcat=None, john='cisco4', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^bcrypt_sha256\$\$(2[axy]|2)\$[0-9]+\$[a-z0-9\/.]{53}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Django(bcrypt-SHA256)', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$postgres\$.[^\*]+[*:][a-f0-9]{1,32}[*:][a-f0-9]{32}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='PostgreSQL Challenge-Response Authentication (MD5)', hashcat=11100, john='postgres', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$siemens-s7\$[0-9]{1}\$[a-f0-9]{40}\$[a-f0-9]{40}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Siemens-S7', hashcat=None, john='siemens-s7', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^(\$pst\$)?[a-f0-9]{8}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Microsoft Outlook PST', hashcat=None, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^sha256[:$][0-9]+[:$][a-z0-9\/+]+[:$][a-z0-9\/+]{32,128}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='PBKDF2-HMAC-SHA256(PHP)', hashcat=10900, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^(\$dahua\$)?[a-z0-9]{8}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='Dahua', hashcat=None, john='dahua', extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$mysqlna\$[a-f0-9]{40}[:*][a-f0-9]{40}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='MySQL Challenge-Response Authentication (SHA1)', hashcat=11200, john=None, extended=False)]),
+    Prototype(
+        regex=re.compile(r'^\$pdf\$[24]\*[34]\*128\*[0-9-]{1,5}\*1\*(16|32)\*[a-f0-9]{32,64}\*32\*[a-f0-9]{64}\*(8|16|32)\*[a-f0-9]{16,64}$', re.IGNORECASE),
+        modes=[
+            HashInfo(name='PDF 1.4 - 1.6 (Acrobat 5 - 8)', hashcat=10500, john='pdf', extended=False)])
+]
+
+
+class HashIdentifier(object):
+
+    """HashIdentifier with configurable prototypes"""
+
+    def __init__(self, prototypes=prototypes):
+        super(HashIdentifier, self).__init__()
+
+        # Set self.prototypes to a copy of prototypes to allow
+        # modification after instantiation
+        self.prototypes = list(prototypes)
+
+    def identifyHash(self, phash):
+        """Returns identified HashInfo"""
+        phash = phash.strip()
+        for prototype in self.prototypes:
+            if prototype.regex.match(phash):
+                for mode in prototype.modes:
+                    yield mode
+
+    def guess(self, phash):
+        """Returns identified HashInfo list"""
+        names = []
+        codes = []
+        phash = phash.strip()
+        for prototype in self.prototypes:
+            if prototype.regex.match(phash):
+                for mode in prototype.modes:
+                    names.append(mode[0])
+                    codes.append(mode[1])
+        return names, codes
+
+
+def writeResult(identified_modes, outfile, hashcatMode=False, johnFormat=False, extended=False):
+    """Write human readable output from identifyHash"""
+    count = 0
+    hashTypes = ""
+    for mode in identified_modes:
+        if not mode.extended or extended:
+            count += 1
+            hashTypes += u"[+] {0} ".format(mode.name)
+            if hashcatMode and mode.hashcat is not None:
+                hashTypes += "[Hashcat Mode: {0}]".format(mode.hashcat)
+            if johnFormat and mode.john is not None:
+                hashTypes += "[JtR Format: {0}]".format(mode.john)
+            hashTypes += "\n"
+    outfile.write(hashTypes)
+    if count == 0:
+        outfile.write(u"[+] Unknown hash\n")
+    return (count > 0)
+
+
+def main():
+    usage = "{0} [-h] [-e] [-m] [-j] [-o FILE] [--version] INPUT".format(os.path.basename(__file__))
+
+    parser = argparse.ArgumentParser(
+        description="Identify the different types of hashes used to encrypt data",
+        usage=usage,
+        epilog=__license__,
+        add_help=False,
+        formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=27)
+    )
+    parser.add_argument("strings",
+                        metavar="INPUT", type=str, nargs="*",
+                        help="input to analyze (default: STDIN)")
+    group = parser.add_argument_group('options')
+    group.add_argument("-e", "--extended",
+                       action="store_true",
+                       help="list all possible hash algorithms including salted passwords")
+    group.add_argument("-m", "--mode",
+                       action="store_true",
+                       help="show corresponding Hashcat mode in output")
+    group.add_argument("-j", "--john",
+                       action="store_true",
+                       help="show corresponding JohnTheRipper format in output")
+    group.add_argument("-o", "--outfile",
+                       metavar="FILE", type=str,
+                       help="write output to file")
+    group.add_argument("-h", "--help",
+                       action="help",
+                       help="show this help message and exit")
+    group.add_argument("--version",
+                       action="version",
+                       version=__banner__)
+    args = parser.parse_args()
+
+    hashID = HashIdentifier()
+
+    if not args.outfile:
+        outfile = sys.stdout
+    else:
+        try:
+            outfile = io.open(args.outfile, "w", encoding="utf-8")
+        except EnvironmentError:
+            parser.error("Could not open {0}".format(args.output))
+
+    if not args.strings or args.strings[0] == "-":
+        while True:
+            line = sys.stdin.readline()
+            if not line:
+                break
+            outfile.write(u"Analyzing '{0}'\n".format(line.strip()))
+            writeResult(hashID.identifyHash(line), outfile, args.mode, args.john, args.extended)
+            sys.stdout.flush()
+    else:
+        for string in args.strings:
+            if os.path.isfile(string):
+                try:
+                    with io.open(string, "r", encoding="utf-8") as infile:
+                        outfile.write("--File '{0}'--\n".format(string))
+                        for line in infile:
+                            if line.strip():
+                                outfile.write(u"Analyzing '{0}'\n".format(line.strip()))
+                                writeResult(hashID.identifyHash(line), outfile, args.mode, args.john, args.extended)
+                except (EnvironmentError, UnicodeDecodeError):
+                    outfile.write("--File '{0}' - could not open--".format(string))
+                else:
+                    outfile.write("--End of file '{0}'--".format(string))
+            else:
+                outfile.write(u"Analyzing '{0}'\n".format(string.strip()))
+                writeResult(hashID.identifyHash(string), outfile, args.mode, args.john, args.extended)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass

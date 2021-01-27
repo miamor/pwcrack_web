@@ -29,6 +29,18 @@ class SessionFileSystem:
 
     def get_hashfile_path(self, user_id, session_id):
         return os.path.join(self.get_user_data_path(user_id, session_id), 'hashes.txt')
+    
+    def get_uploadfile_path(self, user_id, session_id, ext):
+        return os.path.join(self.get_user_data_path(user_id, session_id), 'upload_file'+ext)
+    
+    def find_uploadfile_path(self, user_id, session_id):
+        folder = self.get_user_data_path(user_id, session_id)
+        print('folder', folder)
+        for filename in os.listdir(folder):
+            print('filename', filename)
+            if os.path.splitext(filename)[0] == 'upload_file':
+                return os.path.join(self.get_user_data_path(user_id, session_id), filename)
+        return None
 
     def get_custom_wordlist_path(self, user_id, session_id, prefix='', random=False):
         if len(prefix) == 0:

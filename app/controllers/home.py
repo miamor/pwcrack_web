@@ -13,6 +13,7 @@ def index():
     # 'first-visit' type scenario, in order to create the administrator.
 
     provider = Provider()
+
     users = provider.users()
     if users.get_user_count() == 0:
         # Looks like we need to setup the administrator.
@@ -38,11 +39,14 @@ def index():
     else:
         all_sessions = sessions.get(user_id=current_user.id, active=active)
         
-    processes = sessions.get_running_processes()
+    # processes = sessions.get_running_processes()
+
+    # nodes = provider.nodes()
+    # processes = nodes.get_running_processes()
 
     return render_template(
         'home/index.html',
         sessions=all_sessions,
-        processes=processes,
+        # processes=processes,
         show_all=show_all
     )

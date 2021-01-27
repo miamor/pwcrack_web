@@ -1,8 +1,9 @@
 from app.lib.base.settings import SettingsManager
 from app.lib.session.manager import SessionManager
 from app.lib.base.healthcheck import HealthCheck
-from app.lib.screen.manager import ScreenManager
 from app.lib.hashcat.manager import HashcatManager
+from app.lib.nodes.manager import NodeManager
+from app.lib.base.john import John
 from app.lib.base.shell import ShellManager
 from app.lib.base.wordlists import WordlistManager
 from app.lib.base.system import SystemManager
@@ -19,17 +20,21 @@ from app.lib.base.webpush import WebPushManager
 from app.lib.base.hashes import HashesManager
 from app.lib.base.password_complexity import PasswordComplexityManager
 from flask_login import current_user
+from app.utils.node_api import NodeAPI
 
 
 class Provider:
     def settings(self):
         settings = SettingsManager()
         return settings
+    
+    def nodes(self):
+        return NodeManager()
 
     def sessions(self):
         session = SessionManager(
             self.hashcat(),
-            self.screens(),
+            self.john(),
             self.wordlists(),
             self.hashid(),
             self.filesystem(),
@@ -40,9 +45,9 @@ class Provider:
 
     def healthcheck(self):
         return HealthCheck()
-
-    def screens(self):
-        return ScreenManager(self.shell())
+    
+    def node_api(self, node):
+        return NodeAPI(node)
 
     def hashcat(self):
         settings = self.settings()
@@ -51,6 +56,13 @@ class Provider:
             settings.get('hashcat_binary', ''),
             status_interval=int(settings.get('hashcat_status_interval', 10)),
             force=int(settings.get('hashcat_force', 0))
+        )
+
+    def john(self):
+        settings = self.settings()
+        return John(
+            self.shell(),
+            settings.get('john_path', '')
         )
 
     def shell(self):

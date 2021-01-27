@@ -2,7 +2,6 @@ from app.lib.api.base import ApiBase
 from app.lib.base.provider import Provider
 from app.lib.api.definitions.hashtype import HashType
 
-
 class ApiHashcat(ApiBase):
     def get_types(self):
         provider = Provider()

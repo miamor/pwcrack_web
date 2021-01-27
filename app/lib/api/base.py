@@ -3,7 +3,7 @@ import os
 from flask import request
 from app.lib.api.definitions.response import Response
 from app.lib.api.definitions.file import File
-
+from flask import jsonify
 
 class ApiBase:
     def get_swagger_file(self, version):
@@ -46,7 +46,7 @@ class ApiBase:
         return self.toJSON(response), 500
 
     def toJSON(self, object):
-        return json.dumps(object, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+        return jsonify(json.dumps(object, default=lambda o: o.__dict__, sort_keys=True, indent=4))
 
     def get_json(self, required_fields):
         if not request.is_json:

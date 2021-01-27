@@ -8,13 +8,11 @@ class HealthCheck:
         errors = []
 
         settings = provider.settings()
-        screens = provider.screens()
         sessions = provider.sessions()
         shell = provider.shell()
 
         self.check_python_version("3.6.0", errors)
         self.check_settings(settings, errors)
-        self.check_screens(screens, errors)
         self.check_datapath(sessions, errors)
         self.check_screen_software(shell, errors)
 
@@ -49,14 +47,6 @@ class HealthCheck:
         elif not os.access(wordlists_path, os.R_OK):
             errors.append('Wordlist directory is not readable')
 
-    def check_screens(self, screens, errors):
-        screenrc_path = screens.get_screenrc_path()
-
-        if not os.path.isfile(screenrc_path):
-            errors.append(screenrc_path + ' does not exist')
-        elif not os.access(screenrc_path, os.R_OK):
-            errors.append(screenrc_path + ' is not readable')
-
     def check_datapath(self, sessions, errors):
         datapath = sessions.session_filesystem.get_data_path()
 
@@ -75,4 +65,4 @@ class HealthCheck:
         output = shell.execute(['screen', '--help'], user_id=0)
         if "-Logfile" not in output:
             errors.append(
-                'The *screen* application seems to be out of date. In order for CrackerJack to work it will need to be v4.06 or higher, as those versions introduced the -Logfile parameter which is required.')
+                'The *screen* application seems to be out of date. In order for PasswordCracker to work it will need to be v4.06 or higher, as those versions introduced the -Logfile parameter which is required.')

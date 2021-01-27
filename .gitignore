@@ -2,6 +2,10 @@ venv/
 
 *.pyc
 __pycache__/
+__archived__/
+
+files/
+data/sessions/
 
 instance/
 

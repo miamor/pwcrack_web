@@ -5,7 +5,10 @@ import datetime
 class SessionModel(db.Model):
     __tablename__ = 'sessions'
     id = db.Column(db.Integer, primary_key=True)
+    node_id = db.Column(db.Integer, default=0, index=True, nullable=True)
     user_id = db.Column(db.Integer, default=0, index=True, nullable=True)
+    smode = db.Column(db.Integer, default=0, index=True, nullable=True)
+    filename = db.Column(db.String, default='', index=True, nullable=True)
     name = db.Column(db.String, default='', index=True, nullable=True)
     description = db.Column(db.String, default='', index=True, nullable=True)
     screen_name = db.Column(db.String, default='', index=True, nullable=True)

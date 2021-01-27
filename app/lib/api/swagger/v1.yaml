@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  title: CrackerJack API
+  title: PasswordCracker API
   version: "1.0.0"
 schemes:
   - https
@@ -9,7 +9,7 @@ securityDefinitions:
   APIKeyHeader:
     type: apiKey
     in: header
-    name: X-CrackerJack-Auth
+    name: X-PwCrack-Auth
 basePath: /api/v1
 produces:
   - application/json

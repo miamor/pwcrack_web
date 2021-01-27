@@ -8,13 +8,13 @@
     <link rel="shortcut icon" href="/static/images/favicon.png" type="image/x-icon">
     <link rel="icon" href="/static/images/favicon.png" type="image/x-icon">
 
-    <title>CrackerJack</title>
+    <title>PasswordCracker</title>
     {% set user_theme = user_setting_get(current_user.id if current_user.id else 0, 'theme', setting_get('theme', 'lumen')) %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/themes/'~user_theme~'.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/lib/select2.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/lib/tempusdominus-bootstrap-4.css') }}">
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/lib/tempusdominus-bootstrap-4.css') }}"> -->
     <link rel="stylesheet" href="{{ url_for('static', filename='fontawesome/css/all.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/crackerjack.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 
     <script type="text/javascript" src="{{ url_for('static', filename='js/lib/jquery.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/lib/jquery.validate.js') }}"></script>
@@ -25,12 +25,12 @@
     <script type="text/javascript" src="{{ url_for('static', filename='js/lib/tempusdominus-bootstrap-4.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='fontawesome/js/all.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/webpush/main.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/crackerjack/utils.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/app/utils.js') }}"></script>
 </head>
 <body class="d-flex flex-column h-100">
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand" href="{{ url_for('home.index') }}">CrackerJack</a>
+    <a class="navbar-brand" href="{{ url_for('home.index') }}">PasswordCracker</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor03" aria-controls="navbarColor03" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
@@ -39,6 +39,9 @@
         <ul class="navbar-nav">
             <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('home.index') }}">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('nodes.index') }}">Nodes</a>
             </li>
             {% if current_user.is_authenticated %}
             <li class="nav-item dropdown">
@@ -118,10 +121,7 @@
         {% set commit_count = setting_get('git_commit_count', 0)|int %}
         {% set last_commit_date = setting_get('last_commit_date', '') %}
         <span class="text-default">
-            Hashcat
-            {{ setting_get('hashcat_version', '') }}
-            |
-            CrackerJack
+            PasswordCracker
             {{ setting_get('git_hash_version', '') }}
             {% if commit_count > 0 %}
             | v{{ commit_count }}
@@ -147,6 +147,10 @@
 
     $(document).ready(function() {
         CJ_Utils.submitOnClick();
+
+        $('[data-toggle="popover"]').popover({
+            html: true
+        });
 
         $('.confirm-delete').click(function() {
             var formToSubmit = $(this).closest('form').attr('id');

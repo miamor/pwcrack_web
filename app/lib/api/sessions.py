@@ -143,27 +143,27 @@ class ApiSession(ApiBase):
 
         result = False
         if data['action'] == 'start':
-            result = sessions.hashcat_action(session_id, 'start')
+            result = sessions.hashcat_action(session.session.name, 'start', session_id)
         elif data['action'] == 'stop':
             # Execute only if session is currently running or is paused.
             if state == 1 or state == 4:
-                result = sessions.hashcat_action(session_id, 'stop')
+                result = sessions.hashcat_action(session.session.name, 'stop')
         elif data['action'] == 'pause':
             # Execute only if session is running.
             if state == 1:
-                result = sessions.hashcat_action(session_id, 'pause')
+                result = sessions.hashcat_action(session.session.name, 'pause')
         elif data['action'] == 'resume':
             # Execute only if session is paused.
             if state == 4:
-                result = sessions.hashcat_action(session_id, 'resume')
+                result = sessions.hashcat_action(session.session.name, 'resume')
         elif data['action'] == 'rebuild':
             # Execute only if session is not running or is paused.
             if state != 1 and state != 4:
-                result = sessions.hashcat_action(session_id, 'reset')
+                result = sessions.hashcat_action(session.session.name, 'reset')
         elif data['action'] == 'restore':
             # Execute only if session is not running or is paused.
             if state != 1 and state != 4:
-                result = sessions.hashcat_action(session_id, 'restore')
+                result = sessions.hashcat_action(session.session.name, 'restore')
 
         if result is False:
             return self.send_error_response(5008, 'Could not execute action', '')

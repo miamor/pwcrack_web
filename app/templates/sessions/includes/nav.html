@@ -2,9 +2,18 @@
     <li class="nav-item">
         <a class="nav-link {{ 'active' if active_nav == 'session' }}" href="{{ url_for('sessions.view', session_id=session.id) }}"><i class="fas fa-spinner mr-1"></i>Session</a>
     </li>
-    {% if session.hashcat.state != 1 %}
     <li class="nav-item">
         <a class="nav-link {{ 'active' if active_nav == 'hashes' }}" href="{{ url_for('sessions.setup_hashes', session_id=session.id) }}"><i class="fas fa-hashtag mr-1"></i>Hashes</a>
+    </li>
+    {% if session.hashfile_exists %}
+    <li class="nav-item">
+        <a class="nav-link {{ 'active' if active_nav == 'node' }}" href="{{ url_for('sessions.setup_node', session_id=session.id) }}"><i class="fas fa-cog mr-1"></i>Node</a>
+    </li>
+    {% endif %}
+
+    {% if session.session.node_id > 0 %}
+    <li class="nav-item">
+        <a class="nav-link {{ 'active' if active_nav == 'settings' }}" href="{{ url_for('sessions.settings', session_id=session.id) }}"><i class="fas fa-cog mr-1"></i>Settings</a>
     </li>
     <li class="nav-item">
         <a class="nav-link {{ 'active' if active_nav == 'hashcat' }}" href="{{ url_for('sessions.setup_hashcat', session_id=session.id) }}"><i class="fas fa-cat mr-1"></i>Hashcat</a>
@@ -19,9 +28,6 @@
     </li>
         {% endif %}
     {% endif %}
-    <li class="nav-item">
-        <a class="nav-link {{ 'active' if active_nav == 'settings' }}" href="{{ url_for('sessions.settings', session_id=session.id) }}"><i class="fas fa-cog mr-1"></i>Settings</a>
-    </li>
     <li class="nav-item">
         <a class="nav-link {{ 'active' if active_nav == 'files' }}" href="{{ url_for('sessions.files', session_id=session.id) }}"><i class="fas fa-folder-open mr-1"></i>Files</a>
     </li>

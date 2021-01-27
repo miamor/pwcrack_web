@@ -2,7 +2,7 @@ import os
 from app.lib.models.user import UserModel
 from app.lib.models.hashcat import HashcatHistoryModel
 from sqlalchemy import desc
-
+import linecache
 
 class SessionInstance:
     def __init__(self, session, hashcat, filesystem, hashid):
@@ -14,6 +14,31 @@ class SessionInstance:
 
         self._hashes_in_file = None
         self._hashfile = None
+
+        self._top_prio_hashtype = {
+            400: 'phpass, WordPress (MD5), Joomla (MD5), phpBB3 (MD5)',
+            1000: 'NTLM',
+            9400: 'MS Office 2007',
+            9500: 'MS Office 2010',
+            9600: 'MS Office 2013',
+            9700: 'MS Office ⇐ 2003 MD5 + RC4, oldoffice$0, oldoffice$1',
+            9710: 'MS Office ⇐ 2003 $0/$1, MD5 + RC4, collider #1',
+            9720: 'MS Office ⇐ 2003 $0/$1, MD5 + RC4, collider #2',
+            9800: 'MS Office ⇐ 2003 SHA1 + RC4, oldoffice$3, oldoffice$4',
+            9810: 'MS Office ⇐ 2003 $3, SHA1 + RC4, collider #1',
+            9820: 'MS Office ⇐ 2003 $3, SHA1 + RC4, collider #2',
+            10400: 'PDF 1.1 - 1.3 (Acrobat 2 - 4)',
+            10410: 'PDF 1.1 - 1.3 (Acrobat 2 - 4), collider #1',
+            10420: 'PDF 1.1 - 1.3 (Acrobat 2 - 4), collider #2',
+            10500: 'PDF 1.4 - 1.6 (Acrobat 5 - 8)',
+            10600: 'PDF 1.7 Level 3 (Acrobat 9)',
+            10700: 'PDF 1.7 Level 8 (Acrobat 10 - 11)',
+            111: 'nsldaps, SSHA-1(Base64), Netscape LDAP SSHA',
+            1411: 'SSHA-256(Base64), LDAP {SSHA256}',
+            1711: 'SSHA-512(Base64), LDAP {SSHA512}',
+            0: 'MD5',
+            100: 'SHA1',
+        }
 
     @property
     def id(self):
@@ -118,9 +143,35 @@ class SessionInstance:
             return []
 
         try:
-            with open(self.hashfile, 'r') as f:
-                hash = f.readline().strip()
+            # with open(self.hashfile, 'r') as f:
+            #     hash = f.readline().strip()
+            hash = linecache.getline(self.hashfile, 1).strip()
         except UnicodeDecodeError:
             hash = ''
+        
+        # print('hash', hash)
 
         return self.hashid.guess(hash)
+
+    @property
+    def selected_hashtype(self):
+        if len(self.guess_hashtype[0]) == 0:
+            return 0
+        
+        for top_prio in list(self._top_prio_hashtype.keys()):
+            # for hashtype in self.guess_hashtype:
+            #     print('hashtype', hashtype)
+            #     if hashtype[1] == top_prio:
+            #         return hashtype
+
+            if self.hashcat.hashtype:
+                return self.hashcat.hashtype
+            
+            print('self.guess_hashtype', self.guess_hashtype)
+            if len(self.guess_hashtype) == 0:
+                return ''
+            
+            if top_prio in self.guess_hashtype[1]: # in hashtype codes
+                return top_prio
+                
+        return self.guess_hashtype[1][0]

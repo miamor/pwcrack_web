@@ -35,7 +35,10 @@ def settings_hashcat_save():
 
     hashcat_binary = request.form['hashcat_binary'].strip()
     hashcat_rules_path = request.form['hashcat_rules_path'].strip()
-    hashcat_status_interval = request.form['hashcat_status_interval'].strip()
+    wordlists_path = request.form['wordlists_path'].strip()
+    uploaded_hashes_path = request.form['uploaded_hashes_path'].strip()
+    # hashcat_status_interval = request.form['hashcat_status_interval'].strip()
+    hashcat_status_interval = int(request.form.get('hashcat_status_interval', 10))
     hashcat_force = int(request.form.get('hashcat_force', 0))
 
     has_errors = False
@@ -53,11 +56,25 @@ def settings_hashcat_save():
         has_errors = True
         flash('Hashcat rules directory is not readable', 'error')
 
-    if len(hashcat_status_interval) == 0:
+    if len(wordlists_path) == 0 or not os.path.isdir(wordlists_path):
         has_errors = True
-        flash('Hashcat Status Interval must be set', 'error')
+        flash('Wordlist directory does not exist', 'error')
+    elif not os.access(wordlists_path, os.R_OK):
+        has_errors = True
+        flash('Wordlist directory is not readable', 'error')
 
-    hashcat_status_interval = int(hashcat_status_interval)
+    if len(uploaded_hashes_path) > 0 and not os.path.isdir(uploaded_hashes_path):
+        has_errors = True
+        flash('Uploaded Hashes directory does not exist', 'error')
+    elif len(uploaded_hashes_path) > 0 and not os.access(uploaded_hashes_path, os.R_OK):
+        has_errors = True
+        flash('Uploaded Hashes directory is not readable', 'error')
+
+    # if len(hashcat_status_interval) == 0:
+    #     has_errors = True
+    #     flash('Hashcat Status Interval must be set', 'error')
+
+    # hashcat_status_interval = int(hashcat_status_interval)
     if hashcat_status_interval <= 0:
         hashcat_status_interval = 10
 
@@ -66,6 +83,8 @@ def settings_hashcat_save():
 
     settings.save('hashcat_binary', hashcat_binary)
     settings.save('hashcat_rules_path', hashcat_rules_path)
+    settings.save('wordlists_path', wordlists_path)
+    settings.save('uploaded_hashes_path', uploaded_hashes_path)
     settings.save('hashcat_status_interval', hashcat_status_interval)
     settings.save('hashcat_force', hashcat_force)
 
@@ -362,27 +381,10 @@ def settings_general_save():
         flash('Access Denied', 'error')
         return redirect(url_for('home.index'))
 
-    wordlists_path = request.form['wordlists_path'].strip()
-    uploaded_hashes_path = request.form['uploaded_hashes_path'].strip()
     theme = request.form['theme'].strip()
     webpush_enabled = int(request.form.get('webpush_enabled', 0))
     vapid_private = request.form['vapid_private'].strip()
     vapid_public = request.form['vapid_public'].strip()
-
-    has_errors = False
-    if len(wordlists_path) == 0 or not os.path.isdir(wordlists_path):
-        has_errors = True
-        flash('Wordlist directory does not exist', 'error')
-    elif not os.access(wordlists_path, os.R_OK):
-        has_errors = True
-        flash('Wordlist directory is not readable', 'error')
-
-    if len(uploaded_hashes_path) > 0 and not os.path.isdir(uploaded_hashes_path):
-        has_errors = True
-        flash('Uploaded Hashes directory does not exist', 'error')
-    elif len(uploaded_hashes_path) > 0 and not os.access(uploaded_hashes_path, os.R_OK):
-        has_errors = True
-        flash('Uploaded Hashes directory is not readable', 'error')
 
     themes = filesystem.get_files(os.path.join(current_app.root_path, 'static', 'css', 'themes'))
 
@@ -390,11 +392,6 @@ def settings_general_save():
         flash('Invalid theme', 'error')
         return redirect(url_for('admin.settings_general'))
 
-    if has_errors:
-        return redirect(url_for('admin.settings_general'))
-
-    settings.save('wordlists_path', wordlists_path)
-    settings.save('uploaded_hashes_path', uploaded_hashes_path)
     settings.save('theme', theme)
     # Only update if it's not '********' because we don't show it in the UI.
     if vapid_private != '********':

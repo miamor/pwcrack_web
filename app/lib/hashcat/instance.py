@@ -3,12 +3,13 @@ from app.lib.models.hashcat import HashcatModel
 
 
 class HashcatInstance:
-    def __init__(self, session, filesystem, manager, wordlists):
+    def __init__(self, session, node, filesystem, manager, wordlists):
         self.session = session
         self.filesystem = filesystem
         self.hashcat = manager
         self.wordlists = wordlists
         self.settings = HashcatModel.query.filter(HashcatModel.session_id == session.id).first()
+        self.node = node
 
         self._screen_log_file_path = None
         self._tail_screen = None
@@ -20,6 +21,10 @@ class HashcatInstance:
         self._progress = None
         self._time_remaining = None
         self._estimated_completion_time = None
+
+        if node is not None:
+            self.hashcat.set_nodeapi(node)
+
 
     @property
     def state(self):
@@ -82,8 +87,7 @@ class HashcatInstance:
     @property
     def data(self):
         if self._data is None:
-            self._data = self.hashcat.process_hashcat_raw_data(self.hashcat_data_raw, self.session.screen_name,
-                                                               self.tail_screen)
+            self._data = self.hashcat.process_hashcat_raw_data(self.hashcat_data_raw, self.session.screen_name, self.tail_screen)
         return self._data
 
     @property

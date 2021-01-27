@@ -16,16 +16,16 @@
                     <tbody>
                     <tr>
                         <th scope="row">Cracking Mode</th>
-                        <td>{{ 'Wordlist' if session.hashcat.mode == 0 else 'Brute Force' }}</td>
+                        <td class="text-right">{{ 'Wordlist' if session.hashcat.mode == 0 else 'Brute Force' }}</td>
                     </tr>
                     <tr>
                         <th scope="row">Hash Type</th>
-                        <td><abbr title="{{ supported_hashes[session.hashcat.hashtype] }}">{{ session.hashcat.hashtype }}</abbr></td>
+                        <td class="text-right"><abbr title="{{ supported_hashes[session.hashcat.hashtype] }}">{{ session.hashcat.hashtype }}</abbr></td>
                     </tr>
                     {% if session.hashcat.mode == 0 %}
                     <tr>
                         <th scope="row">Wordlist</th>
-                        <td>
+                        <td class="text-right">
                             <abbr title="{{ session.hashcat.wordlist_path }}">
                                 {% if session.hashcat.wordlist_type == 0 or session.hashcat.wordlist_type == '' %}
                                     {{ session.hashcat.wordlist if session.hashcat.mode == 0 else '' }}
@@ -39,28 +39,51 @@
                     </tr>
                     <tr>
                         <th scope="row">Rule</th>
-                        <td><abbr title="{{ session.hashcat.rule_path }}">{{ session.hashcat.rule if session.hashcat.mode == 0 else '' }}</abbr></td>
+                        <td class="text-right"><abbr title="{{ session.hashcat.rule_path }}">{{ session.hashcat.rule if session.hashcat.mode == 0 else '' }}</abbr></td>
                     </tr>
                     {% else %}
                     <tr>
                         <th scope="row">Mask</th>
-                        <td>{{ session.hashcat.mask if session.hashcat.mode == 3 else '' }}</td>
+                        <td class="text-right">{{ session.hashcat.mask if session.hashcat.mode == 3 else '' }}</td>
                     </tr>
                     <tr>
                         <th scope="row">Increments</th>
-                        <td>
+                        <td class="text-right">
                             {% if session.hashcat.increment_min|int > 0 or session.hashcat.increment_max|int > 0 %}
                             {{ session.hashcat.increment_min }} - {{ session.hashcat.increment_max }}
                             {% endif %}
                         </td>
                     </tr>
                     {% endif %}
+                    <tr>
+                        <th scope="row">Terminate At</th>
+                        <td class="text-right">{{ session.terminate_at }}</td>
+                    </tr>
                     </tbody>
                 </table>
             </div>
             <div class="col">
                 <table class="table table-striped">
                     <tbody>
+                    <tr>
+                        <th scope="row">Encrypted File Uploaded</th>
+                        <td class="text-right">
+                            <span>
+                                {% if session.session.smode == 3 %}
+                                    {{ session.session.filename.split('/')[-1] }}
+                                {% else %}
+                                    <i>None</i>
+                                {% endif %}
+                            </span>
+                            {% if session.session.smode == 3 %}
+                            <form action="{{ url_for('sessions.download_file', session_id=session.id, which_file='encrypt') }}" method="post" class="force-inline" autocomplete="off">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <a href="#" class="text-warning ml-1 submit-on-click" title="download"><i class="fas fa-file-download fa-lg"></i></a>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+
                     <tr>
                         <th scope="row">Hashes Uploaded</th>
                         <td class="text-right">
@@ -96,10 +119,6 @@
                                 {% endif %}
                             {% endif %}
                         </td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Terminate At</th>
-                        <td class="text-right">{{ session.terminate_at }}</td>
                     </tr>
                     </tbody>
                 </table>
@@ -193,7 +212,7 @@
     </div>
 </div>
 
-<script type="text/javascript" src="{{ url_for('static', filename='js/crackerjack/sessions/view.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/app/sessions/view.js') }}"></script>
 
 <script type="text/javascript">
     $(document).ready(function() {

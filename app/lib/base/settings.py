@@ -5,6 +5,7 @@ from app import db
 class SettingsManager:
     def save(self, name, value):
         setting = ConfigModel.query.filter(ConfigModel.name == name).first()
+        print('[SettingsManager][save] setting', setting)
         if setting is None:
             setting = ConfigModel(name=name, value=value)
             db.session.add(setting)

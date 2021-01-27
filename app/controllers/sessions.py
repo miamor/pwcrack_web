@@ -2,7 +2,8 @@ from flask_login import current_user, login_required
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from app.lib.base.provider import Provider
 import json
-
+import os
+import linecache
 
 bp = Blueprint('sessions', __name__)
 
@@ -48,10 +49,13 @@ def setup_hashes(session_id):
 
     uploaded_hashfiles = uploaded_hashes.get_uploaded_hashes()
 
+    uploaded_filename_this_session = session.session.filename if session.session.filename else ''
+
     return render_template(
         'sessions/setup/hashes.html',
         session=session,
         uploaded_hashfiles_json=json.dumps(uploaded_hashfiles, indent=4, sort_keys=True, default=str),
+        uploaded_filename_this_session=uploaded_filename_this_session,
     )
 
 
@@ -67,46 +71,139 @@ def setup_hashes_save(session_id):
         return redirect(url_for('home.index'))
 
     mode = int(request.form['mode'].strip())
-    save_as = sessions.session_filesystem.get_hashfile_path(current_user.id, session_id)
 
-    if mode == 0:
-        # Upload file.
-        if len(request.files) != 1:
+    # print('request.files', request.files)
+
+    save_as = ''
+    filename = ''
+    if mode == 3:
+        # Upload encrypted file.
+        if len(request.files) < 1:
             flash('Uploaded file could not be found', 'error')
             return redirect(url_for('sessions.setup_hashes', session_id=session_id))
 
-        file = request.files['hashfile']
+        file = request.files['encryptedfile']
         if file.filename == '':
-            flash('No hashes uploaded', 'error')
+            flash('No encrypted file uploaded', 'error')
             return redirect(url_for('sessions.setup_hashes', session_id=session_id))
+
+        save_as = sessions.session_filesystem.get_uploadfile_path(current_user.id, session_id, os.path.splitext(file.filename)[1])
 
         file.save(save_as)
-    elif mode == 1:
+        filename = file.filename
+
+        # run file2john to get hash from file
+        hashes = sessions.john_file2hashes(session_id)
+
         # Enter hashes manually.
-        hashes = request.form['hashes'].strip()
         if len(hashes) > 0:
-            sessions.session_filesystem.save_hashes(current_user.id, session_id, hashes)
+            sessions.session_filesystem.save_hashes(current_user.id, session_id, '\n'.join(hashes))
         else:
-            flash('No hashes entered', 'error')
-            return redirect(url_for('sessions.setup_hashes', session_id=session_id))
-    elif mode == 2:
-        # Select already uploaded file.
-        remotefile = request.form['remotefile'].strip()
-        if not uploaded_hashes.is_valid_uploaded_hashfile(remotefile):
-            flash('Invalid uploaded file selected', 'error')
+            flash('Cannot convert encrypted file to hash', 'error')
             return redirect(url_for('sessions.setup_hashes', session_id=session_id))
 
-        remotefile_location = uploaded_hashes.get_uploaded_hashes_path(remotefile)
-
-        if not uploaded_hashes.copy_file(remotefile_location, save_as):
-            flash('Could not copy file', 'error')
-            return redirect(url_for('sessions.setup_hashes', session_id=session_id))
     else:
-        flash('Invalid mode selected', 'error')
+        save_as = sessions.session_filesystem.get_hashfile_path(current_user.id, session_id)
+
+        if mode == 0:
+            # Upload hash file.
+            if len(request.files) < 1:
+                flash('Uploaded file could not be found', 'error')
+                return redirect(url_for('sessions.setup_hashes', session_id=session_id))
+
+            file = request.files['hashfile']
+            if file.filename == '':
+                flash('No hashes uploaded', 'error')
+                return redirect(url_for('sessions.setup_hashes', session_id=session_id))
+
+            file.save(save_as)
+            filename = file.filename
+        elif mode == 1:
+            # Enter hashes manually.
+            hashes = request.form['hashes'].strip()
+            if len(hashes) > 0:
+                sessions.session_filesystem.save_hashes(current_user.id, session_id, hashes)
+            else:
+                flash('No hashes entered', 'error')
+                return redirect(url_for('sessions.setup_hashes', session_id=session_id))
+        elif mode == 2:
+            # Select already uploaded file.
+            remotefile = request.form['remotefile'].strip()
+            if not uploaded_hashes.is_valid_uploaded_hashfile(remotefile):
+                flash('Invalid uploaded file selected', 'error')
+                return redirect(url_for('sessions.setup_hashes', session_id=session_id))
+
+            remotefile_location = uploaded_hashes.get_uploaded_hashes_path(remotefile)
+
+            if not uploaded_hashes.copy_file(remotefile_location, save_as):
+                flash('Could not copy file', 'error')
+                return redirect(url_for('sessions.setup_hashes', session_id=session_id))
+        else:
+            flash('Invalid mode selected', 'error')
+            return redirect(url_for('sessions.setup_hashes', session_id=session_id))
+
+    # update smode in database
+    # sessions.set_smode(session_id, mode)
+    update_dict = {
+        'smode': mode,
+        'filename': filename
+    }
+    sessions.update(session_id, update_dict)
+
+    return redirect(url_for('sessions.setup_node', session_id=session_id))
+
+'''
+@bp.route('/<int:session_id>/setup/file2hash', methods=['GET'])
+@login_required
+def setup_file2hash(session_id):
+    provider = Provider()
+    john = provider.john()
+    sessions = provider.sessions()
+
+    if not sessions.can_access(current_user, session_id):
+        flash('Access Denied', 'error')
+        return redirect(url_for('home.index'))
+
+    user_id = 0 if current_user.admin else current_user.id
+    session = sessions.get(user_id=user_id, session_id=session_id)[0]
+
+    if session.session.smode != 3:
+        flash('This step is for [Upload encrypted file] only', 'error')
         return redirect(url_for('sessions.setup_hashes', session_id=session_id))
 
-    return redirect(url_for('sessions.setup_hashcat', session_id=session_id))
+    hashes = sessions.john_file2hashes(session_id)
 
+    return render_template(
+        'sessions/setup/file2hash.html',
+        session=session,
+        output_john=hashes,
+        encrypted_file=session.session.filename,
+    )
+
+
+@bp.route('/<int:session_id>/setup/file2hash/save', methods=['POST'])
+@login_required
+def setup_file2hash_save(session_id):
+    provider = Provider()
+    sessions = provider.sessions()
+
+    if not sessions.can_access(current_user, session_id):
+        flash('Access Denied', 'error')
+        return redirect(url_for('home.index'))
+
+    # run file2john to get hash from file
+    file_type = request.form['file_type'] if 'file_type' in request.form else None
+    hashes = sessions.john_file2hashes(session_id, file_type)
+
+    # Enter hashes manually.
+    if len(hashes) > 0:
+        sessions.session_filesystem.save_hashes(current_user.id, session_id, '\n'.join(hashes))
+    else:
+        flash('Cannot convert encrypted file to hash', 'error')
+        return redirect(url_for('sessions.setup_file2hash', session_id=session_id))
+
+    return redirect(url_for('sessions.setup_hashcat', session_id=session_id))
+'''
 
 @bp.route('/<int:session_id>/setup/hashcat', methods=['GET'])
 @login_required
@@ -131,9 +228,14 @@ def setup_hashcat(session_id):
         flash('Could not get the supported hashes from hashcat', 'error')
         flash('If you have compiled hashcat from source, make sure %s/.hashcat directory exists and is writable' % home_directory, 'error')
 
+    one_hash = ''
+    if session.hashfile_exists:
+        one_hash = linecache.getline(session.hashfile, 1).strip()
+
     return render_template(
         'sessions/setup/hashcat.html',
         session=session,
+        one_hash=one_hash,
         hashes_json=json.dumps(supported_hashes, indent=4, sort_keys=True, default=str)
     )
 
@@ -246,6 +348,47 @@ def setup_mask_save(session_id):
     sessions.set_hashcat_setting(session_id, 'increment_min', increment_min)
     sessions.set_hashcat_setting(session_id, 'increment_max', increment_max)
 
+    sessions.sync_mask_to_node(session_id)
+
+    return redirect(url_for('sessions.view', session_id=session_id))
+
+
+@bp.route('/<int:session_id>/setup/node', methods=['GET'])
+@login_required
+def setup_node(session_id):
+    provider = Provider()
+    sessions = provider.sessions()
+    nodes = provider.nodes()
+
+    if not sessions.can_access(current_user, session_id):
+        flash('Access Denied', 'error')
+        return redirect(url_for('home.index'))
+
+    user_id = 0 if current_user.admin else current_user.id
+    session = sessions.get(user_id=user_id, session_id=session_id)[0]
+
+    all_nodes = nodes.get(active=1)
+
+    return render_template(
+        'sessions/setup/node.html',
+        session=session,
+        nodes=all_nodes,
+    )
+
+@bp.route('/<int:session_id>/setup/node/save', methods=['POST'])
+@login_required
+def setup_node_save(session_id):
+    provider = Provider()
+    sessions = provider.sessions()
+
+    if not sessions.can_access(current_user, session_id):
+        flash('Access Denied', 'error')
+        return redirect(url_for('home.index'))
+
+    node_id = int(request.form['node_id'].strip())
+
+    sessions.set_node(session_id, node_id)
+
     return redirect(url_for('sessions.settings', session_id=session_id))
 
 
@@ -264,11 +407,16 @@ def setup_wordlist(session_id):
     user_id = 0 if current_user.admin else current_user.id
     session = sessions.get(user_id=user_id, session_id=session_id)[0]
 
+    wordlists_node = sessions.get_wordlists_from_node(session_id)
+    rules_node = sessions.get_rules_from_node(session_id)
+
     return render_template(
         'sessions/setup/wordlist.html',
         session=session,
-        wordlists=wordlists.get_wordlists(),
-        rules=rules.get_rules()
+        # wordlists=wordlists.get_wordlists(),
+        wordlists_node=wordlists_node,
+        # rules=rules.get_rules(),
+        rules_node=rules_node
     )
 
 
@@ -286,15 +434,17 @@ def setup_wordlist_save(session_id):
 
     wordlist_type = int(request.form['wordlist_type'].strip())
 
+    file = None
     if wordlist_type == 0:
-        # Global wordlist.
-        wordlist = request.form['wordlist'].strip()
-        if not wordlists.is_valid_wordlist(wordlist):
+        # Select from Node wordlist.
+        wordlist = request.form['wordlist_node'].strip()
+        check_local_wordlist_exist = sessions.is_valid_local_wordlist(session_id, wordlist)
+        if check_local_wordlist_exist['exist'] is False:
             flash('Invalid wordlist selected', 'error')
             return redirect(url_for('sessions.setup_wordlist', session_id=session_id))
 
-        wordlist_location = wordlists.get_wordlist_path(wordlist)
-        sessions.set_hashcat_setting(session_id, 'wordlist', wordlist_location)
+        # wordlist_location = wordlists.get_wordlist_path(wordlist)
+        sessions.set_hashcat_setting(session_id, 'wordlist', wordlist)
     elif wordlist_type == 1:
         # Custom wordlist.
         save_as = sessions.session_filesystem.get_custom_wordlist_path(current_user.id, session_id, prefix='custom_wordlist_', random=True)
@@ -306,14 +456,14 @@ def setup_wordlist_save(session_id):
         if file.filename == '':
             flash('No hashes uploaded', 'error')
             return redirect(url_for('sessions.setup_wordlist', session_id=session_id))
-
-        file.save(save_as)
-        sessions.set_hashcat_setting(session_id, 'wordlist', save_as)
+        file.filename = save_as.split('/')[-1]
+        # file.save(save_as)
+        sessions.set_hashcat_setting(session_id, 'wordlist', save_as.split('/')[-1])
     elif wordlist_type == 2:
         # Create wordlist from cracked passwords.
         save_as = sessions.session_filesystem.get_custom_wordlist_path(current_user.id, session_id, prefix='pwd_wordlist')
         sessions.export_cracked_passwords(session_id, save_as)
-        sessions.set_hashcat_setting(session_id, 'wordlist', save_as)
+        sessions.set_hashcat_setting(session_id, 'wordlist', save_as.split('/')[-1])
     else:
         flash('Invalid wordlist option', 'error')
         return redirect(url_for('sessions.setup_wordlist', session_id=session_id))
@@ -321,14 +471,19 @@ def setup_wordlist_save(session_id):
     sessions.set_hashcat_setting(session_id, 'wordlist_type', wordlist_type)
 
     rule = request.form['rule'].strip()
-    if len(rule) > 0 and not rules.is_valid_rule(rule):
-        flash('Invalid rule selected', 'error')
-        return redirect(url_for('sessions.setup_wordlist', session_id=session_id))
+    # if len(rule) > 0 and not rules.is_valid_rule(rule):
+    if len(rule) > 0:
+        check_local_rule_exist = sessions.is_valid_local_rule(session_id, rule)
+        if check_local_rule_exist['exist'] is False:
+            flash('Invalid rule selected', 'error')
+            return redirect(url_for('sessions.setup_wordlist', session_id=session_id))
 
-    rule_location = rules.get_rule_path(rule)
-    sessions.set_hashcat_setting(session_id, 'rule', rule_location)
+    # rule_location = rules.get_rule_path(rule)
+    sessions.set_hashcat_setting(session_id, 'rule', rule)
 
-    return redirect(url_for('sessions.settings', session_id=session_id))
+    sessions.sync_wordlist_to_node(session_id, custom_wordlist=file)
+
+    return redirect(url_for('sessions.view', session_id=session_id))
 
 
 @bp.route('/<int:session_id>/view', methods=['GET'])
@@ -374,7 +529,7 @@ def action(session_id):
         return redirect(url_for('sessions.view', session_id=session_id))
 
     action = request.form['action'].strip()
-    result = sessions.hashcat_action(session_id, action)
+    result = sessions.hashcat_action(session.session.name, action, session_id)
     if result is False:
         flash('Could not execute action. Please check that all settings have been configured and try again.', 'error')
         return redirect(url_for('sessions.view', session_id=session_id))
@@ -430,7 +585,7 @@ def settings_save(session_id):
 
     if len(termination_date) == 0:
         flash('Please enter a termination date', 'error')
-        return redirect(url_for('sessions.settings', session_id=session_id))
+        return redirect(url_for('sessions.view', session_id=session_id))
 
     if len(termination_time) == 0:
         # Default to 23:59.
@@ -438,12 +593,14 @@ def settings_save(session_id):
 
     if not sessions.set_termination_datetime(session_id, termination_date, termination_time):
         flash('Invalid termination date/time entered', 'error')
-        return redirect(url_for('sessions.settings', session_id=session_id))
+        return redirect(url_for('sessions.view', session_id=session_id))
 
     sessions.set_notifications(session_id, notifications_enabled)
 
+    sessions.sync_settings_to_node(session_id)
+
     flash('Settings saved', 'success')
-    return redirect(url_for('sessions.view', session_id=session_id))
+    return redirect(url_for('sessions.setup_hashcat', session_id=session_id))
 
 
 @bp.route('/<int:session_id>/history/apply/<int:history_id>', methods=['POST'])
@@ -482,6 +639,8 @@ def status(session_id):
 
     user_id = 0 if current_user.admin else current_user.id
     session = sessions.get(user_id=user_id, session_id=session_id)[0]
+    
+    sessions.hashcat_action(session.session.name, 'synchronize_from_node')
 
     return json.dumps({'result': True, 'status': session.hashcat.state})
 

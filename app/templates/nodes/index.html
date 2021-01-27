@@ -1,0 +1,76 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+<div class="row mt-5">
+    <div class="col-1"></div>
+    <div class="col-8"></div>
+    <div class="col-3">
+        <div class="form-group">
+            <a href="{{ url_for('nodes.new') }}" class="btn btn-primary btn-block">Create new Node</a>
+        </div>
+    </div>
+    <div class="clear"></div>
+</div>
+
+<div class="row">
+    <div class="col-1"></div>
+    <div class="col">
+        <div class="card">
+            <h3 class="card-header">Nodes</h3>
+            <div class="card-body">
+                <div class="clearfix mb-2">
+                    <div class="float-right">
+                        {% if show_all %}
+                        <a href="{{ url_for('nodes.index') }}">hide inactive nodes</a>
+                        {% else %}
+                        <a href="{{ url_for('nodes.index', all=1) }}">show inactive nodes</a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <table class="table table-sm table-striped">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Hostname</th>
+                        <th class="text-center">Port</th>
+                        <th>Username</th>
+                        <th>Password</th>
+                        <th class="text-center">Sessions</th>
+                        <th class="text-center">State</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for node in nodes %}
+                    <tr>
+                        <td>{{ node.id }}</td>
+                        <td><a href="{{ url_for('nodes.view', node_id=node.id) }}">{{ node.name }}</a></td>
+                        <td>{{ node.hostname }}</td>
+                        <td class="text-center">{{ node.port }}</td>
+                        <td>{{ node.username }}</td>
+                        <td>{{ node.password }}</td>
+                        <td class="text-center">{{ node.num_sessions }}</td>
+                        <td class="text-center">
+                            {% if node.active %}
+                            <form action="{{ url_for('nodes.active_action', node_id=node.id, action='hide') }}" method="post" class="force-inline" autocomplete="off">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <a href="#" class="submit-on-click" title="Click here to hide"><i class="fas fa-eye-slash"></i></a>
+                            </form>
+                            {% else %}
+                            <form action="{{ url_for('nodes.active_action', node_id=node.id, action='show') }}" method="post" class="force-inline" autocomplete="off">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <a href="#" class="submit-on-click" title="Click here to show"><i class="fas fa-eye"></i></a>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-1"></div>
+</div>
+{% endblock %}

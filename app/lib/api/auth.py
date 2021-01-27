@@ -7,7 +7,8 @@ from sqlalchemy import and_
 
 class ApiAuth:
     def auth(self, auto_login_user):
-        apikey = request.headers['X-CrackerJack-Auth'].strip() if 'X-CrackerJack-Auth' in request.headers else ''
+        apikey = request.headers['X-PwCrack-Auth'].strip() if 'X-PwCrack-Auth' in request.headers else ''
+        # print('[ApiAuth][auth] apikey', apikey)
         if len(apikey) == 0:
             return False
 

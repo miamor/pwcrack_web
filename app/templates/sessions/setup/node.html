@@ -1,0 +1,55 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+
+{% if session.hashcat.state == 1 %}
+<div class="row mt-5">
+    <div class="col">
+        <div class="alert alert-warning">This session is currently running. Any changes you make on this page will not have any effect on it unless it is restarted.</div>
+    </div>
+</div>
+{% endif %}
+
+{% set active_nav = 'node' %}
+{% include 'sessions/includes/header.html' %}
+<div class="row mt-5">
+    <div class="col-2">
+        {% include 'sessions/includes/nav.html' %}
+    </div>
+    <div class="col">
+        <form id="setup-node" method="post" enctype="multipart/form-data" action="{{ url_for('sessions.setup_node_save', session_id=session.id) }}" autocomplete="off">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="card">
+                <h5 class="card-header">Select executing node</h5>
+                <div class="card-body">
+                    <div class="form-group">
+                        {% for node in nodes %}
+                        <div class="custom-control custom-radio">
+                            <div class="col">
+                                <input type="radio" id="n{{ node.id }}" name="node_id" class="mode-option custom-control-input" {{ 'checked' if session.session.node_id == node.id else '' }} value="{{ node.id }}">
+                                <label class="custom-control-label row" for="n{{ node.id }}">
+                                    <div class="col-4">{{ node.name }}</div>
+                                    <div class="col-5">{{ node.hostname }}</div>
+                                    <div class="col-3">{{ node.port }}</div>
+                                    <div class="clearfix"></div>
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group mt-3">
+                    {% if session.hashcat.state != 1 and session.hashcat.state != 4 %}
+                        <button type="submit" class="btn btn-primary btn-block">save</button>
+                    {% else %}
+                        <button type="submit" disabled class="btn btn-primary btn-block">save</button>
+                    {% endif %}
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+    
+{% endblock %}

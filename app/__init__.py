@@ -28,7 +28,7 @@ def create_app(config_class=None):
         pass
 
     # First we load everything we need in order to end up with a working app.
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.instance_path, 'crackerjack.sqlite3')
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.instance_path, 'default.sqlite3')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = 'ThisIsNotTheKeyYouAreLookingFor'
     app.config['SESSION_COOKIE_HTTPONLY'] = True
@@ -54,6 +54,9 @@ def create_app(config_class=None):
 
     from app.controllers.admin import bp as admin_bp
     app.register_blueprint(admin_bp, url_prefix='/admin')
+
+    from app.controllers.nodes import bp as node_bp
+    app.register_blueprint(node_bp, url_prefix='/nodes')
 
     from app.controllers.sessions import bp as sessions_bp
     app.register_blueprint(sessions_bp, url_prefix='/sessions')
@@ -137,4 +140,4 @@ def create_app(config_class=None):
 
 
 # This has to be at the bottom.
-from app.lib.models import user, config, sessions, hashcat, api, system, webpush
+from app.lib.models import user, config, sessions, nodes, hashcat, api, system, webpush

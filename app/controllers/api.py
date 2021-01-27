@@ -8,7 +8,9 @@ from app.lib.api.mask import ApiMask
 from app.lib.api.auth import ApiAuth
 from app.lib.api.base import ApiBase
 from flask_login import current_user
-
+from flask import jsonify, request
+import json
+from app.lib.base.provider import Provider
 
 bp = Blueprint('api', __name__)
 
@@ -46,6 +48,37 @@ def session_get_all():
         return base.send_access_denied_response()
 
     return sessions.get_all(current_user.id)
+
+
+@bp.route('/sessions/<int:session_id>/synchronize_to_web', methods=['POST'])
+def synchronize_to_web(session_id):
+    auth = ApiAuth()
+    base = ApiBase()
+    sessions = ApiSession()
+
+    if not auth.auth(True):
+        return base.send_access_denied_response()
+    elif not sessions.can_access(current_user, session_id):
+        return base.send_access_denied_response()
+
+    data = json.loads(request.form.get('json'))
+    num_files = data['num_files']
+
+
+    provider = Provider()
+    sessions = provider.sessions()
+    
+    session = sessions.get(user_id=0, session_id=session_id)[0]
+
+    user_data_path = sessions.session_filesystem.get_user_data_path(session.session.user_id, session_id)
+
+    for idx in range(num_files):
+        file = request.files['file__{}'.format(idx)]
+        # print('[synchronize_from_node] file', file.filename)
+        save_as = user_data_path+'/'+file.filename
+        file.save(save_as)
+
+    return {'response': 'ok'}
 
 
 @bp.route('/sessions/<int:session_id>', methods=['GET'])

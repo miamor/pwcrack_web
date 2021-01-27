@@ -8,16 +8,18 @@ from app.lib.models.sessions import SessionModel, SessionNotificationModel
 from app.lib.models.hashcat import HashcatModel, HashcatHistoryModel
 from app.lib.session.filesystem import SessionFileSystem
 from app.lib.session.instance import SessionInstance
+from app.utils.node_api import NodeAPI
 from app.lib.hashcat.instance import HashcatInstance
+from app.lib.models.nodes import NodeModel
 from app import db
 from sqlalchemy import and_, desc
 from flask import send_file
 
 
 class SessionManager:
-    def __init__(self, hashcat, screens, wordlists, hashid, filesystem, webpush, shell):
+    def __init__(self, hashcat, john, wordlists, hashid, filesystem, webpush, shell):
         self.hashcat = hashcat
-        self.screens = screens
+        self.john = john
         self.wordlists = wordlists
         self.hashid = hashid
         self.filesystem = filesystem
@@ -25,6 +27,8 @@ class SessionManager:
         self.shell = shell
         self.session_filesystem = SessionFileSystem(filesystem)
         self.cmd_sleep = 2
+
+        self.node_id = 0
 
     def sanitise_name(self, name):
         return re.sub(r'\W+', '', name)
@@ -49,6 +53,9 @@ class SessionManager:
 
     def __get_by_id(self, session_id):
         return SessionModel.query.filter(SessionModel.id == session_id).first()
+
+    def get_by_nodeid(self, node_id):
+        return SessionModel.query.filter(SessionModel.node_id == node_id).all()
 
     def create(self, user_id, description, prefix):
         prefix = self.sanitise_name(prefix) + '_'
@@ -108,13 +115,16 @@ class SessionManager:
 
         return True if history else False
 
-    def get(self, user_id=0, session_id=0, active=None):
+    def get(self, user_id=0, session_id=0, node_id=0, active=None):
         query = SessionModel.query
         if user_id > 0:
             query = query.filter(SessionModel.user_id == user_id)
 
         if session_id > 0:
             query = query.filter(SessionModel.id == session_id)
+
+        if node_id > 0:
+            query = query.filter(SessionModel.node_id == node_id)
 
         if active is not None:
             query = query.filter(SessionModel.active == active)
@@ -123,7 +133,9 @@ class SessionManager:
 
         data = []
         for session in sessions:
-            hashcat_instance = HashcatInstance(session, self.session_filesystem, self.hashcat, self.wordlists)
+            node = NodeModel.query.filter(NodeModel.id == session.node_id).first()
+            hashcat_instance = HashcatInstance(session, node, self.session_filesystem, self.hashcat, self.wordlists)
+            # instance = SessionInstance(session, node, hashcat_instance, self.session_filesystem, self.hashid)
             instance = SessionInstance(session, hashcat_instance, self.session_filesystem, self.hashid)
             data.append(instance)
 
@@ -202,111 +214,206 @@ class SessionManager:
             self.session_filesystem.get_potfile_path(session.user_id, session_id),
             save_as
         )
-        self.shell.execute(command)
+        out = self.shell.execute(command)
+        print('~~~~[export_cracked_passwords] out', out)
 
         return True
+    
+    def set_node(self, session_id, node_id):
+        self.node_id = node_id
 
-    def hashcat_action(self, session_id, action):
+        # update smode in database
+        # sessions.set_smode(session_id, mode)
+        update_dict = {
+            'node_id': node_id
+        }
+        self.update(session_id, update_dict)
+
+
         # First get the session.
         session = self.get(session_id=session_id)[0]
 
-        # Make sure the screen is running.
-        screen = self.screens.get(session.screen_name, log_file=self.session_filesystem.get_screenfile_path(session.user_id, session_id))
+        session_record = session.session
 
-        if action == 'start':
-            if self.__is_past_date(session.terminate_at):
-                return False
+        user_data_path = self.session_filesystem.get_user_data_path(session.session.user_id, session_id)
 
-            command = self.hashcat.build_command_line(
-                session.screen_name,
-                int(session.hashcat.mode),
-                session.hashcat.mask,
-                session.hashcat.hashtype,
-                self.session_filesystem.get_hashfile_path(session.user_id, session_id),
-                session.hashcat.wordlist_path,
-                session.hashcat.rule_path,
-                self.session_filesystem.get_crackedfile_path(session.user_id, session_id),
-                self.session_filesystem.get_potfile_path(session.user_id, session_id),
-                int(session.hashcat.increment_min),
-                int(session.hashcat.increment_max),
-                int(session.hashcat.optimised_kernel),
-                int(session.hashcat.workload)
-            )
+        if self.hashcat.node_api is None:
+            self.hashcat.node_api = NodeAPI(session.hashcat.node)
 
-            # Before we start a new session, rename the previous "screen.log" file
-            # so that we can determine errors/state easier.
-            self.session_filesystem.backup_screen_log_file(session.user_id, session_id)
+        # send data to local node
+        payload = {
+            'session_record': {
+                'id': session.session.id,
+                'user_id': session.session.user_id,
+                'name': session.session.name,
+                'description': session.session.description,
+                'smode': session.session.smode,
+                'filename': session.session.filename,
+                'screen_name': session.session.screen_name,
+                'active': session.session.active,
+                # 'terminate_at': str(session.session.terminate_at),
+                # 'created_at': str(session.session.created_at)
+            },
+            'user_data_path': user_data_path,
+        }
+                
+        hashfile_path = self.session_filesystem.get_hashfile_path(session.user_id, session_id)
 
-            # Even though we renamed the file, as it is still open the OS handle will now point to the renamed file.
-            # We re-set the screen logfile to the original file.
-            screen.set_logfile(self.session_filesystem.get_screenfile_path(session.user_id, session_id))
-            screen.execute(command)
+        return self.hashcat.node_api.create_hashcat_session(payload, filepaths=[hashfile_path])
 
+
+    def is_valid_local_wordlist(self, session_id, wordlist):
+        if self.hashcat.node_api is None:
+            # First get the session.
+            session = self.get(session_id=session_id)[0]
+            self.hashcat.node_api = NodeAPI(session.hashcat.node)
+        return self.hashcat.node_api.is_valid_local_wordlist(wordlist)
+    
+    def is_valid_local_rule(self, session_id, rule):
+        if self.hashcat.node_api is None:
+            # First get the session.
+            session = self.get(session_id=session_id)[0]
+            self.hashcat.node_api = NodeAPI(session.hashcat.node)
+        return self.hashcat.node_api.is_valid_local_rule(rule)
+
+    def sync_wordlist_to_node(self, session_id, custom_wordlist=None):
+        # First get the session.
+        session = self.get(session_id=session_id)[0]
+
+        hashcat_record = session.hashcat.settings
+
+        user_data_path = self.session_filesystem.get_user_data_path(session.session.user_id, session_id)
+
+        if self.hashcat.node_api is None:
+            self.hashcat.node_api = NodeAPI(session.hashcat.node)
+
+        # send data to local node
+        payload = {
+            'session_record': {
+                'id': session.session.id,
+                'user_id': session.session.user_id,
+            },
+            'hashcat_record': {
+                'id': session.hashcat.settings.id,
+                'session_id': session.hashcat.settings.session_id,
+                'mode': session.hashcat.settings.mode,
+                'workload': session.hashcat.settings.workload,
+                'hashtype': session.hashcat.settings.hashtype,
+                'wordlist_type': session.hashcat.settings.wordlist_type,
+                'wordlist': session.hashcat.settings.wordlist,
+                'rule': session.hashcat.settings.rule,
+                'mask': session.hashcat.settings.mask,
+                'increment_min': session.hashcat.settings.increment_min,
+                'increment_max': session.hashcat.settings.increment_max,
+                'optimised_kernel': session.hashcat.settings.optimised_kernel,
+                'created_at': str(session.hashcat.settings.created_at)
+            },
+            'user_data_path': user_data_path,
+        }
+                
+
+        filepaths = []
+
+        if hashcat_record.wordlist_type == 1 and custom_wordlist is not None:
+            return self.hashcat.node_api.sync_hashcat_session(payload, filepaths=[], files=[custom_wordlist])
+
+        elif hashcat_record.wordlist_type == 2:
+            for filename in os.listdir(user_data_path):
+                if 'custom_wordlist' in filename or 'pwd_wordlist' in filename:
+                    filepaths.append(user_data_path+'/'+filename)
+
+        return self.hashcat.node_api.sync_hashcat_session(payload, filepaths=filepaths)
+
+
+    def sync_mask_to_node(self, session_id):
+        # First get the session.
+        session = self.get(session_id=session_id)[0]
+
+        hashcat_record = session.hashcat.settings
+
+        user_data_path = self.session_filesystem.get_user_data_path(session.session.user_id, session_id)
+
+        if self.hashcat.node_api is None:
+            self.hashcat.node_api = NodeAPI(session.hashcat.node)
+
+        # send data to local node
+        payload = {
+            'session_record': {
+                'id': session.session.id,
+                'user_id': session.session.user_id,
+            },
+            'hashcat_record': {
+                'id': session.hashcat.settings.id,
+                'session_id': session.hashcat.settings.session_id,
+                'mode': session.hashcat.settings.mode,
+                'workload': session.hashcat.settings.workload,
+                'hashtype': session.hashcat.settings.hashtype,
+                'wordlist_type': session.hashcat.settings.wordlist_type,
+                'wordlist': session.hashcat.settings.wordlist,
+                'rule': session.hashcat.settings.rule,
+                'mask': session.hashcat.settings.mask,
+                'increment_min': session.hashcat.settings.increment_min,
+                'increment_max': session.hashcat.settings.increment_max,
+                'optimised_kernel': session.hashcat.settings.optimised_kernel,
+                'created_at': str(session.hashcat.settings.created_at)
+            },
+            'user_data_path': user_data_path,
+        }
+        
+        return self.hashcat.node_api.sync_hashcat_session(payload, filepaths=[])
+
+
+    def sync_settings_to_node(self, session_id):
+        # First get the session.
+        session = self.get(session_id=session_id)[0]
+
+        session_record = session.session
+
+        if self.hashcat.node_api is None:
+            self.hashcat.node_api = NodeAPI(session.hashcat.node)
+
+        # send data to local node
+        payload = {
+            'session_record': {
+                'id': session.session.id,
+                'user_id': session.session.user_id,
+                'terminate_at': str(session.session.terminate_at),
+            },
+        }
+        
+        return self.hashcat.node_api.sync_session(payload)
+    
+    def get_wordlists_from_node(self, session_id):
+        if self.hashcat.node_api is None:
+            # First get the session.
+            session = self.get(session_id=session_id)[0]
+            self.hashcat.node_api = NodeAPI(session.hashcat.node)
+        return self.hashcat.node_api.get_wordlists_from_node()
+
+    def get_rules_from_node(self, session_id):
+        if self.hashcat.node_api is None:
+            # First get the session.
+            session = self.get(session_id=session_id)[0]
+            self.hashcat.node_api = NodeAPI(session.hashcat.node)
+        return self.hashcat.node_api.get_rules_from_node()
+
+
+    def hashcat_action(self, session_name, action, session_id=0):
+        if action == 'start' and session_id > 0:
             # Every time we start a session, we make a copy of the settings and put them in the hashcat_history table.
             self.__save_hashcat_history(session_id)
-        elif action == 'reset':
-            # Close the screen.
-            screen.quit()
+        return self.hashcat.node_api.hashcat_action(session_name, action)
 
-            # Create it again.
-            screen = self.screens.get(session.screen_name, log_file=self.session_filesystem.get_screenfile_path(session.user_id, session_id))
-        elif action == 'resume':
-            if self.__is_past_date(session.terminate_at):
-                return False
+    def john_file2hashes(self, session_id, filetype=None):
+        # First get the session.
+        session = self.get(session_id=session_id)[0]
 
-            # Hashcat only needs 'r' to resume.
-            screen.execute({'r': ''})
+        encrypted_file = self.session_filesystem.get_uploadfile_path(session.user_id, session_id, os.path.splitext(session.session.filename)[1])
 
-            # Wait a couple of seconds.
-            time.sleep(self.cmd_sleep)
-
-            # Send an "s" command to show current status.
-            screen.execute({'s': ''})
-
-            # Wain a second.
-            time.sleep(1)
-        elif action == 'pause':
-            # Hashcat only needs 'p' to pause.
-            screen.execute({'p': ''})
-
-            # Wait a couple of seconds.
-            time.sleep(self.cmd_sleep)
-
-            # Send an "s" command to show current status.
-            screen.execute({'s': ''})
-
-            # Wain a second.
-            time.sleep(1)
-        elif action == 'stop':
-            # Send an "s" command to show current status.
-            screen.execute({'s': ''})
-
-            # Wain a second.
-            time.sleep(1)
-
-            # Hashcat only needs 'q' to pause.
-            screen.execute({'q': ''})
-        elif action == 'restore':
-            if self.__is_past_date(session.terminate_at):
-                return False
-
-            # To restore a session we need a command line like 'hashcat --session NAME --restore'.
-            command = self.hashcat.build_restore_command(session.screen_name)
-            screen.execute(command)
-
-            # Wait a couple of seconds.
-            time.sleep(self.cmd_sleep)
-
-            # Send an "s" command to show current status.
-            screen.execute({'s': ''})
-
-            # Wain a second.
-            time.sleep(1)
-        else:
-            return False
-
-        return True
-
+        output_john = self.john.run_file2john(encrypted_file, filetype)
+        hashes = [output_john]
+        return hashes
+    
     def __save_hashcat_history(self, session_id):
         record = HashcatModel.query.filter(HashcatModel.session_id == session_id).first()
         new_record = HashcatHistoryModel(
@@ -348,6 +455,10 @@ class SessionManager:
         if which_file == 'cracked':
             file = self.session_filesystem.get_crackedfile_path(session.user_id, session_id)
             save_as = save_as + '.cracked.txt'
+        elif which_file == 'encrypt':
+            file = self.session_filesystem.find_uploadfile_path(session.user_id, session_id)
+            ext = os.path.splitext(file)[1] if file is not None else ''
+            save_as = save_as + '.original_encrypted_file'+ext
         elif which_file == 'hashes' or which_file == 'all':
             file = self.session_filesystem.get_hashfile_path(session.user_id, session_id)
             save_as = save_as + '.hashes.txt'
@@ -363,45 +474,13 @@ class SessionManager:
             file = files[which_file]['path']
             save_as = which_file
 
-        if not os.path.exists(file):
+        if file is None or not os.path.exists(file):
             return 'Error'
 
         return send_file(file, attachment_filename=save_as, as_attachment=True)
 
     def get_running_processes(self):
-        sessions = self.get()
-
-        data = {
-            'stats': {
-                'all': 0,
-                'web': 0,
-                'ssh': 0
-            },
-            'commands': {
-                'all': [],
-                'web': [],
-                'ssh': []
-            }
-        }
-
-        processes = self.hashcat.get_running_processes_commands()
-
-        data['stats']['all'] = len(processes)
-        data['commands']['all'] = processes
-
-        for process in processes:
-            name = self.hashcat.extract_session_from_process(process)
-            found = False
-            for session in sessions:
-                if session.screen_name == name:
-                    found = True
-                    break
-
-            key = 'web' if found else 'ssh'
-            data['stats'][key] = data['stats'][key] + 1
-            data['commands'][key].append(process)
-
-        return data
+        return self.hashcat.node_api.get_running_processes()
 
     def set_termination_datetime(self, session_id, date, time):
         date_string = date + ' ' + time
@@ -445,20 +524,6 @@ class SessionManager:
                 # If it's running or paused, terminate.
                 print("Terminating session %d" % past_session.id)
                 self.hashcat_action(session.id, 'stop')
-
-    def guess_hashtype(self, user_id, session_id):
-        hashfile = self.session_filesystem.get_hashfile_path(user_id, session_id)
-        if not os.path.isfile(hashfile):
-            return []
-
-        # Get the first hash from the file
-        try:
-            with open(hashfile, 'r') as f:
-                hash = f.readline().strip()
-        except UnicodeDecodeError:
-            hash = ''
-
-        return self.hashid.guess(hash)
 
     def get_data_files(self, user_id, session_id):
         user_data_path = self.session_filesystem.get_user_data_path(user_id, session_id)
@@ -536,6 +601,30 @@ class SessionManager:
     def set_active(self, session_id, active):
         session = self.__get_by_id(session_id)
         session.active = active
+
+        db.session.commit()
+        db.session.refresh(session)
+        return True
+
+    def set_smode(self, session_id, smode=0):
+        session = self.__get_by_id(session_id)
+        session.smode = smode
+
+        db.session.commit()
+        db.session.refresh(session)
+        return True
+
+    def update(self, session_id, update_dict):
+        session = self.__get_by_id(session_id)
+
+        for key in list(update_dict.keys()):
+            val = update_dict[key]
+            if key == 'smode':
+                session.smode = val
+            elif key == 'filename':
+                session.filename = val
+            elif key == 'node_id':
+                session.node_id = val
 
         db.session.commit()
         db.session.refresh(session)

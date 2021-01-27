@@ -16,6 +16,8 @@ class ShellManager:
     def execute(self, command, user_id=None):
         user_id = self.user_id if user_id is None else user_id
         log = self.__log_start(' '.join(command), user_id)
+        
+        # print('[base/shell.py][ShellManager][execute] command', command)
 
         output = subprocess.run(command, stdout=subprocess.PIPE).stdout.decode().strip()
 
