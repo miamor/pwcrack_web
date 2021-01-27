@@ -4,12 +4,26 @@ venv/
 __pycache__/
 __archived__/
 
+<<<<<<< HEAD
 files/
 data/sessions/
 
 .pytest_cache/
 .coverage
 htmlcov/
+=======
+files/rules/*
+files/wordlists/*
+files/masks/*
+files/hashes/*
+files/screen/*
+!files/*/.gitkeep
+
+data/sessions/*
+!data/sessions/.gitkeep
+
+.pytest_cache/
+>>>>>>> ab7054354e78102c080496004ed12cf0a44fe113
 
 dist/
 build/
@@ -17,6 +31,7 @@ build/
 
 .idea/
 migrations/
+<<<<<<< HEAD
 
 #data/*
 !data/.gitkeep
@@ -25,3 +40,5 @@ os/config/*
 !os/config/.gitkeep
 
 setup/ansible/vars.yml
+=======
+>>>>>>> ab7054354e78102c080496004ed12cf0a44fe113
