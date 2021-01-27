@@ -12,6 +12,7 @@ files/screen/*
 !files/*/.gitkeep
 
 data/sessions/*
+!data/sessions/.gitkeep
 
 .pytest_cache/
 
