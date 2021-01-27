@@ -12,8 +12,6 @@ files/screen/*
 data/sessions/*
 
 .pytest_cache/
-.coverage
-htmlcov/
 
 dist/
 build/
