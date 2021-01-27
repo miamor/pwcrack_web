@@ -7,8 +7,6 @@ __archived__/
 files/
 data/sessions/
 
-instance/
-
 .pytest_cache/
 .coverage
 htmlcov/
@@ -20,7 +18,7 @@ build/
 .idea/
 migrations/
 
-data/*
+#data/*
 !data/.gitkeep
 
 os/config/*
