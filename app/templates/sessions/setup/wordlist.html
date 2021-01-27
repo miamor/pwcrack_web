@@ -1,0 +1,133 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+
+{% if session.hashcat.state == 1 %}
+<div class="row mt-5">
+    <div class="col">
+        <div class="alert alert-warning">This session is currently running. Any changes you make on this page will not have any effect on it unless it is restarted.</div>
+    </div>
+</div>
+{% endif %}
+
+{% set active_nav = 'wordlist' %}
+{% include 'sessions/includes/header.html' %}
+
+<div class="row mt-5">
+    <div class="col-2">
+        {% include 'sessions/includes/nav.html' %}
+    </div>
+    <div class="col">
+        
+        <form id="setup-wordlist" method="post" enctype="multipart/form-data" action="{{ url_for('sessions.setup_wordlist_save', session_id=session.id) }}" autocomplete="off">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="card">
+                <h5 class="card-header">Wordlist Options</h5>
+                <div class="card-body">
+
+                    {% if session.session.node_id == 0 %}
+                    <div class="form-group">
+                        <div class="small text-warning no-hashfile-message">
+                            <div>No node selected.</div>
+                            <div>Go back to <a href="{{ url_for('sessions.setup_node', session_id=session.id) }}">Node setup step</a> and make sure to select a node.</div>
+                        </div>
+                    </div>
+                    {% else %}
+
+                    <div class="row">
+                        <div class="col">
+                            <div class="alert alert-info">Node <b>{{ session.hashcat.node.name }}</b> is selected.</div>
+                        </div>
+                    </div>
+
+
+                    <!-- Local Node Wordlists -->
+                    <div class="form-group">
+                        <div class="custom-control custom-radio">
+                            <input type="radio" id="wordlist-node" name="wordlist_type" class="mode-option custom-control-input" value="0" {{ 'checked' if session.hashcat.wordlist_type == 0 or session.hashcat.wordlist_type == '' else '' }}>
+                            <label class="custom-control-label" for="wordlist-node">Local Node Wordlist</label>
+                        </div>
+
+                        <select name="wordlist_node" id="wordlist_node" class="form-control">
+                            <option value="">No wordlist selected</option>
+                            <!-- <optgroup label="Directories">
+                                {% for name, wordlist in wordlists_node.items() %}
+                                {% if wordlist['type'] == 'folder' %}
+                                <option value="{{ name }}">{{ name }}</option>
+                                {% endif %}
+                                {% endfor %}
+                            </optgroup> -->
+
+                            <!-- <optgroup label="Files"> -->
+                                {% for name, wordlist in wordlists_node.items() %}
+                                {% if wordlist['type'] == 'file' %}
+                                <option value="{{ name }}">{{ name }} - {{ wordlist['size_human'] }}</option>
+                                {% endif %}
+                                {% endfor %}
+                            <!-- </optgroup> -->
+                        </select>
+                    </div>
+
+
+
+                    <div class="form-group">
+                        <div class="custom-control custom-radio">
+                            <input type="radio" id="wordlist-session" name="wordlist_type" class="mode-option custom-control-input" value="1" {{ 'checked' if session.hashcat.wordlist_type == 1 else '' }}>
+                            <label class="custom-control-label" for="wordlist-session">Custom Session Wordlist</label>
+                        </div>
+
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="custom_wordlist" name="custom_wordlist">
+                            <label class="custom-file-label" for="custom_wordlist">Choose your wordlist</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="custom-control custom-radio">
+                            <input type="radio" id="wordlist-passwords" name="wordlist_type" class="mode-option custom-control-input" value="2" {{ 'checked' if session.hashcat.wordlist_type == 2 else '' }}>
+                            <label class="custom-control-label" for="wordlist-passwords">Create wordlist from already cracked passwords</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rule">Rules</label>
+                        <select name="rule" id="rule" class="form-control">
+                            <option value="">No Rules</option>
+                            {% for key, rule in rules_node.items() %}
+                            <option value="{{ key }}">{{ rule.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group mt-3">
+                    {% if session.hashcat.state != 1 and session.hashcat.state != 4 %}
+                        <button type="submit" class="btn btn-primary btn-block">save</button>
+                    {% else %}
+                        <button type="submit" disabled class="btn btn-primary btn-block">save</button>
+                    {% endif %}
+                    </div>
+
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript" src="{{ url_for('static', filename='js/app/sessions/wordlist.js') }}"></script>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        CJ_SessionsWordlists.init();
+
+        $('#rule').select2({}).val('{{ session.hashcat.rule }}').trigger('change');
+        {% if session.hashcat.wordlist_type == 0 %}
+        $('#wordlist_node').select2({}).val('{{ session.hashcat.wordlist }}').trigger('change');
+        {% else %}
+        $('#wordlist_node').select2({})
+        {% endif %}
+    });
+</script>
+
+{% endblock %}

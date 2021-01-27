@@ -1,0 +1,57 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+
+{% if session.hashcat.state == 1 %}
+<div class="row mt-5">
+    <div class="col">
+        <div class="alert alert-warning">This session is currently running. Any changes you make on this page will not have any effect on it unless it is restarted.</div>
+    </div>
+</div>
+{% endif %}
+
+{% set active_nav = 'file2hash' %}
+{% include 'sessions/includes/header.html' %}
+
+<div class="row mt-5">
+    <div class="col-2">
+        {% include 'sessions/includes/nav.html' %}
+    </div>
+    <div class="col">
+        <div class="card">
+            <h4 class="card-header">File2Hash</h4>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" action="{{ url_for('sessions.setup_file2hash_save', session_id=session.id) }}" autocomplete="off">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    Uploaded file: {{ encrypted_file }}
+                    File to hash: {{ output_john }}
+
+                    <div class="form-group">
+                        <label>Select file type manually</label>
+
+                        <div class="custom-control">
+                        </div>
+
+                    </div>
+
+                    <div class="form-group">
+                    {% if session.hashcat.state != 1 and session.hashcat.state != 4 %}
+                        <button type="submit" class="btn btn-primary btn-block">save</button>
+                        <!-- {% if session.hashfile_exists == True %}
+                            <a href="{{ url_for('sessions.setup_hashcat', session_id=session.id) }}" class="btn btn-primary btn-block">next</a>
+                        {% endif %} -->
+                    {% else %}
+                        <button type="submit" disabled class="btn btn-primary btn-block">save</button>
+                        <!-- {% if session.hashfile_exists == True %}
+                            <a href="{{ url_for('sessions.setup_hashcat', session_id=session.id) }}" class="btn btn-primary btn-block">next</a>
+                        {% endif %} -->
+                    {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
