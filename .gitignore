@@ -11,6 +11,7 @@ files/hashes/*
 files/screen/*
 !files/*/.gitkeep
 
+data/instance/*.sqlite3
 data/sessions/*
 !data/sessions/.gitkeep
 
