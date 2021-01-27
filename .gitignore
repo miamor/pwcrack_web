@@ -9,6 +9,8 @@ files/wordlists/*
 files/masks/*
 files/hashes/*
 files/screen/*
+!files/*/.gitkeep
+
 data/sessions/*
 
 .pytest_cache/
