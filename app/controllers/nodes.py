@@ -61,14 +61,6 @@ def create():
     username = request.form['username'].strip()
     password = request.form['password'].strip()
 
-    hashcat_binary = request.form['hashcat_binary'].strip()
-    hashcat_rules_path = request.form['hashcat_rules_path'].strip()
-    wordlists_path = request.form['wordlists_path'].strip()
-    uploaded_hashes_path = request.form['uploaded_hashes_path'].strip()
-    hashcat_status_interval = int(request.form.get('hashcat_status_interval', 10))
-    hashcat_force = int(request.form.get('hashcat_force', 0))
-
-
     has_errors = False
 
     if len(name) == 0:
@@ -91,6 +83,17 @@ def create():
         has_errors = True
         flash('Node password must not be empty', 'error')
 
+    if has_errors:
+        return redirect(url_for('nodes.new'))
+
+    '''
+    hashcat_binary = request.form['hashcat_binary'].strip()
+    hashcat_rules_path = request.form['hashcat_rules_path'].strip()
+    wordlists_path = request.form['wordlists_path'].strip()
+    uploaded_hashes_path = request.form['uploaded_hashes_path'].strip()
+    hashcat_status_interval = int(request.form.get('hashcat_status_interval', 10))
+    hashcat_force = int(request.form.get('hashcat_force', 0))
+
     if len(hashcat_binary) == 0:
         has_errors = True
         flash('Hashcat executable must not be empty', 'error')
@@ -110,14 +113,11 @@ def create():
     if hashcat_status_interval <= 0:
         hashcat_status_interval = 10
 
-    if has_errors:
-        return redirect(url_for('nodes.new'))
-
     res = node_api.update_hashcat_settings(update_dict)
     if res['response'] is False:
         flash(res['msg'], 'error')
         return redirect(url_for('nodes.new'))
-
+    '''
 
     node = nodes.create(name, hostname, port, username, password)
     if node is None:

@@ -45,59 +45,6 @@
                         </div>
                     </div>
 
-
-                    <h4>Hashcat Settings</h4>
-
-                    <div class="form-group row">
-                        <label for="hashcat_binary" class="col-sm-5 col-form-label">Hashcat Executable Path</label>
-                        <div class="col">
-                            <input name="hashcat_binary" type="text" id="hashcat_binary" class="form-control" placeholder="/path/to/hashcat" required>
-                        </div>
-                    </div>
-
-                    <div class="form-group row">
-                        <label for="hashcat_status_interval" class="col-sm-9 col-form-label">Hashcat Status Interval</label>
-                        <div class="col">
-                            <input type="number" id="hashcat_status_interval" name="hashcat_status_interval" class="form-control" placeholder="10">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="hashcat_force">Use --force</label>
-                        <div class="custom-control custom-switch float-right">
-                            <input name="hashcat_force" type="checkbox" class="custom-control-input" id="hashcat_force" if node.hashcat_force == 1 else '' }}>
-                            <label class="custom-control-label" for="hashcat_force"></label>
-                        </div>
-                    </div>
-
-                    <div class="form-group row">
-                        <label for="hashcat_rules_path" class="col-sm-5 col-form-label">Rules Path</label>
-                        <div class="col">
-                            <input name="hashcat_rules_path" type="text" id="hashcat_rules_path" class="form-control" placeholder="/path/to/hashcat/rules" required>
-                        </div>
-                    </div>
-
-                    <div class="form-group row">
-                        <label for="wordlists_path" class="col-sm-5 col-form-label">Wordlists Path</label>
-                        <div class="col">
-                            <input name="wordlists_path" type="text" id="wordlists_path" class="form-control" placeholder="/path/to/hashcat/wordlists" required>
-                        </div>
-                    </div>
-
-                    <div class="form-group row">
-                        <div class="col-sm-5 col-form-label">
-                            <label for="uploaded_hashes_path">Uploaded Hashes Path</label>
-                            <span class="text-primary" title="" data-container="body" data-toggle="popover" data-placement="left" data-content="This folder will be used in cases where the user wants to upload a very large hash file (ie from HIBP).<br>In this instance, users will upload the file via SSH and then select it from the front-end." data-original-title="Uploaded Hashes">
-                                <i class="fas fa-question-circle"></i>
-                            </span>
-                        </div>
-                        <div class="col">
-                            <input name="uploaded_hashes_path" type="text" id="uploaded_hashes_path" class="form-control" placeholder="/path/to/uploaded/hashes/folder">
-                            <div class="text-info small mt-2">Make sure all users have <b>write</b> access to this folder.</div>
-                        </div>
-                    </div>
-
-
                     <div class="form-group mt-3">
                         <button type="submit" class="btn btn-primary btn-block">Create</button>
                     </div>

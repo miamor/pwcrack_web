@@ -20,8 +20,10 @@ class NodeManager:
         return NodeModel.query.filter(
             or_(
                 NodeModel.name == name,
-                NodeModel.hostname == hostname,
-                NodeModel.port == port
+                and_(
+                    NodeModel.hostname == hostname,
+                    NodeModel.port == port
+                )
             )
         ).first()
 
