@@ -16,11 +16,21 @@ class John:
             'excel', 'vnd.ms-excel', 'msexcel', 'x-excel', 'x-msexcel' #xls, xlm
             'powerpoint', 'vnd.ms-powerpoint', 'mspowerpoint', 'x-powerpoint', 'x-mspowerpoint', 
         ]
+        rar_mimes = [
+            'rar', 'application/x-rar-compressed, application/octet-stream'
+        ]
+        zip_mimes = [
+            'rar', 'application/zip, application/octet-stream, application/x-zip-compressed, multipart/x-zip'
+        ]
 
         if filetype is None:
             filetype = magic.from_file(filepath, mime=True).split('/')[-1]
         
-        if filetype == 'pdf':
+        if filetype in rar_mimes:
+            convert_file = 'rar2john'
+        elif filetype in zip_mimes:
+            convert_file = 'zip2john'
+        elif filetype == 'pdf':
             convert_file = 'pdf2john.pl'
         elif filetype in office_mimes:
             convert_file = 'office2john.py'
@@ -40,6 +50,8 @@ class John:
 
         # Split lines using \n and run strip against all elements of the list.
         lines = list(map(str.strip, output.split("\n")))
-        hash = lines[0].split(':')[1]
+        first_dollar = lines[0].find('$')
+        strget = lines[0][first_dollar:]
+        hash = strget.split(':')[0]
 
         return hash

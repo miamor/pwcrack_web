@@ -92,14 +92,18 @@ def setup_hashes_save(session_id):
         file.save(save_as)
         filename = file.filename
 
+        file_type = None
+        if 'file_type' in request.form and request.form['file_type'] != '0':
+            file_type = request.form['file_type'].strip()
+
         # run file2john to get hash from file
-        hashes = sessions.john_file2hashes(session_id)
+        hashes = sessions.john_file2hashes(session_id, file_type)
 
         # Enter hashes manually.
         if len(hashes) > 0:
             sessions.session_filesystem.save_hashes(current_user.id, session_id, '\n'.join(hashes))
         else:
-            flash('Cannot convert encrypted file to hash', 'error')
+            flash('Cannot convert encrypted file to hash. Please manually select file type', 'error')
             return redirect(url_for('sessions.setup_hashes', session_id=session_id))
 
     else:

@@ -10,6 +10,7 @@ import json
 import base64
 import os
 import urllib3
+import urllib.request
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 timeout_connection = 1
@@ -22,6 +23,17 @@ class NodeAPI:
         self.ip = node.hostname
         self.port = node.port
         self.key = base64.b64encode(("%s:%s" % (node.username, node.password)).encode("ascii")).decode("ascii")
+    
+    def isUp(self): 
+        """ Check if node is up """
+        try:
+            data = self.send('/isUp')
+            return True if data['response'] == 'ok' else False
+        # except Exception as e:
+        #     if e.errno == errno.ECONNREFUSED:
+        #         return False
+        except:
+            return False
     
     def hashcat_action(self, session_name, action):
         return self.send("/session/%s/%s" % (session_name, action))
@@ -109,18 +121,21 @@ class NodeAPI:
         """
 
         url = "https://%s:%d/api/v1%s" % (self.ip, self.port, url)
-        if data == None:
-            print('[send][GET] url', url)
-            res = requests.get(url, headers=headers, verify=False, timeout=TIMEOUT)
-        else:
-            print('[send][POST] url', url, json.dumps(data))
-            res = requests.post(url, json.dumps(data), headers=headers, verify=False, timeout=TIMEOUT)
+        try:
+            if data == None:
+                print('[send][GET] url', url)
+                res = requests.get(url, headers=headers, verify=False, timeout=TIMEOUT)
+            else:
+                print('[send][POST] url', url, json.dumps(data))
+                res = requests.post(url, json.dumps(data), headers=headers, verify=False, timeout=TIMEOUT)
 
-        #data = res.read()
-        data = res.text
+            #data = res.read()
+            data = res.text
 
-        #conn.close()
-        return json.loads(data)
+            #conn.close()
+            return json.loads(data)
+        except:
+            return {"response": "error", "message": "Could not connect to {}:{}".format(self.ip, self.port)}
 
     def post_file(self, url, payload, filepaths, files=None):
         headers = {
@@ -132,50 +147,53 @@ class NodeAPI:
         url = "https://%s:%d/api/v1%s" % (self.ip, self.port, url)
         print('[post_file] url', url)
 
-        # form = encoder.MultipartEncoder({
-        #     'json': (None, json.dumps(payload), 'application/json'),
-        #     'file': ("file", open(filepath, 'rb'), 'application/octet-stream')
-        # })
+        try:
+            # form = encoder.MultipartEncoder({
+            #     'json': (None, json.dumps(payload), 'application/json'),
+            #     'file': ("file", open(filepath, 'rb'), 'application/octet-stream')
+            # })
 
-        if len(filepaths) > 0:
-            payload['num_files'] = len(filepaths)
+            if len(filepaths) > 0:
+                payload['num_files'] = len(filepaths)
 
-            enc_data = {
-                'json': (None, json.dumps(payload), 'application/json'),
-                # 'file': files
-                # 'file': files
-            }
+                enc_data = {
+                    'json': (None, json.dumps(payload), 'application/json'),
+                    # 'file': files
+                    # 'file': files
+                }
 
-            if payload['num_files'] > 0:
-                for idx, filepath in enumerate(filepaths):
-                    enc_data['file__{}'.format(idx)] = (filepath.split('/')[-1], open(filepath, 'rb'), 'application/octet-stream')
-        elif files is not None and len(files) > 0:
-            payload['num_files'] = len(files)
+                if payload['num_files'] > 0:
+                    for idx, filepath in enumerate(filepaths):
+                        enc_data['file__{}'.format(idx)] = (filepath.split('/')[-1], open(filepath, 'rb'), 'application/octet-stream')
+            elif files is not None and len(files) > 0:
+                payload['num_files'] = len(files)
 
-            enc_data = {
-                'json': (None, json.dumps(payload), 'application/json'),
-            }
+                enc_data = {
+                    'json': (None, json.dumps(payload), 'application/json'),
+                }
 
-            if payload['num_files'] > 0:
-                for idx, file in enumerate(files):
-                    enc_data['file__{}'.format(idx)] = (file.filename.split('/')[-1], file.read(), 'application/octet-stream')
-        else:
-            payload['num_files'] = 0
-            enc_data = {
-                'json': (None, json.dumps(payload), 'application/json'),
-            }
+                if payload['num_files'] > 0:
+                    for idx, file in enumerate(files):
+                        enc_data['file__{}'.format(idx)] = (file.filename.split('/')[-1], file.read(), 'application/octet-stream')
+            else:
+                payload['num_files'] = 0
+                enc_data = {
+                    'json': (None, json.dumps(payload), 'application/json'),
+                }
 
+                
             
-        
-        form = encoder.MultipartEncoder(enc_data)
+            form = encoder.MultipartEncoder(enc_data)
 
-        headers['Content-Type'] = form.content_type
+            headers['Content-Type'] = form.content_type
 
-        print('form', form)
+            print('form', form)
 
-        res = requests.post(url, data=form, headers=headers, verify=False)
+            res = requests.post(url, data=form, headers=headers, verify=False)
 
-        data = res.text
+            data = res.text
 
-        return json.loads(data)
+            return json.loads(data)
 
+        except:
+            return {"response": "error", "message": "Could not connect to {}:{}".format(self.ip, self.port)}

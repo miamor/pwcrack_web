@@ -139,16 +139,19 @@ def view(node_id):
 
     node_api = provider.node_api(node)
 
-    rule_files = node_api.get_rules_from_node()
-    wordlist_files = node_api.get_wordlists_from_node()
+    if node_api.isUp():
+        rule_files = node_api.get_rules_from_node()
+        wordlist_files = node_api.get_wordlists_from_node()
 
-    return render_template(
-        'nodes/view.html',
-        node=node.node,
-        sessions_list=sessions_list,
-        rule_files=rule_files,
-        wordlist_files=wordlist_files,
-    )
+        return render_template(
+            'nodes/view.html',
+            node=node.node,
+            sessions_list=sessions_list,
+            rule_files=rule_files,
+            wordlist_files=wordlist_files,
+        )
+    else:
+        return render_template('nodes/view_dead.html', node=node.node)
 
 @bp.route('/<int:node_id>/update_hashcat/save', methods=['POST'])
 @login_required

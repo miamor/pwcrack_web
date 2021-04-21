@@ -29,22 +29,22 @@
                         <label>Select method</label>
 
                         <div class="custom-control custom-radio">
-                            <input type="radio" id="mode-upload" name="mode" class="mode-option custom-control-input" value="3">
+                            <input type="radio" id="mode-upload" name="mode" class="mode-option custom-control-input" value="3" {{ 'checked="checked"' if session.session.smode == 3 else '' }}>
                             <label class="custom-control-label" for="mode-upload">Upload encrypted file from local machine</label>
                         </div>
 
                         <div class="custom-control custom-radio">
-                            <input type="radio" id="mode-upload-hash" name="mode" class="mode-option custom-control-input" value="0" checked="checked">
+                            <input type="radio" id="mode-upload-hash" name="mode" class="mode-option custom-control-input" value="0" {{ 'checked="checked"' if session.session.smode == 0 else '' }}>
                             <label class="custom-control-label" for="mode-upload-hash">Upload hash file from local machine</label>
                         </div>
 
                         <div class="custom-control custom-radio">
-                            <input type="radio" id="mode-paste" name="mode" class="mode-option custom-control-input" value="1">
+                            <input type="radio" id="mode-paste" name="mode" class="mode-option custom-control-input" value="1" {{ 'checked="checked"' if session.session.smode == 1 else '' }}>
                             <label class="custom-control-label" for="mode-paste">Enter hashes manually</label>
                         </div>
 
                         <div class="custom-control custom-radio">
-                            <input type="radio" id="mode-remote" name="mode" class="mode-option custom-control-input" value="2">
+                            <input type="radio" id="mode-remote" name="mode" class="mode-option custom-control-input" value="2" {{ 'checked="checked"' if session.session.smode == 2 else '' }}>
                             <label class="custom-control-label" for="mode-remote">Select file from server <i>(if you uploaded via SSH)</i></label>
                         </div>
                     </div>
@@ -61,6 +61,23 @@
                                 <b>{{ uploaded_filename_this_session }}</b> has been uploaded.
                             </div>
                             {% endif %}
+                            <div class="small text-warning file-error-message"></div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-3 col-form-label" for="file_type">File type</label>
+                            <div class="col custom-file">
+                                <select name="file_type" id="file_type" class="form-control">
+                                    <option value="0">Automatically detected</option>
+                                    <option value="excel">MS Office</option>
+                                    <option value="pdf">PDF</option>
+                                    <option value="rar">Compressed file (RAR)</option>
+                                    <option value="zip">Compressed file (ZIP)</option>
+                                </select>
+                            </div>
+                            <!-- <div class="text-info small mt-2">
+                                
+                            </div> -->
                             <div class="small text-warning file-error-message"></div>
                         </div>
                     </div>

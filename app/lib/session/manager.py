@@ -408,6 +408,8 @@ class SessionManager:
         # First get the session.
         session = self.get(session_id=session_id)[0]
 
+        print('~~~~~~~~ os.path.splitext(session.session.filename)[1]', os.path.splitext(session.session.filename)[1])
+
         encrypted_file = self.session_filesystem.get_uploadfile_path(session.user_id, session_id, os.path.splitext(session.session.filename)[1])
 
         output_john = self.john.run_file2john(encrypted_file, filetype)
