@@ -19,11 +19,15 @@ TIMEOUT = (timeout_connection, timeout_read)
 
 class NodeAPI:
 
-    def __init__(self, node):
+    def __init__(self, node=None):
+        if node is not None:
+            self.setNode(node)
+    
+    def setNode(self, node):
         self.ip = node.hostname
         self.port = node.port
         self.key = base64.b64encode(("%s:%s" % (node.username, node.password)).encode("ascii")).decode("ascii")
-    
+
     def isUp(self): 
         """ Check if node is up """
         try:

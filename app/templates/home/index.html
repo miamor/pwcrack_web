@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="row mt-5">
-    <div class="col-1"></div>
+    <!-- <div class="col-1"></div> -->
     <div class="col">
         <form method="post" action="{{ url_for('sessions.create') }}" autocomplete="off">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -21,11 +21,11 @@
             </div>
         </form>
     </div>
-    <div class="col-1"></div>
+    <!-- <div class="col-1"></div> -->
 </div>
 
 <div class="row">
-    <div class="col-1"></div>
+    <!-- <div class="col-1"></div> -->
     <div class="col">
         <div class="card">
             <h3 class="card-header">Sessions</h3>
@@ -60,7 +60,12 @@
                     <tr>
                         <td>{{ session.id }}</td>
                         {% if current_user.admin %}
-                        <td>{{ session.username }}</td>
+                        <td>
+                            <a href="{{ url_for('users.view', user_id=session.user.id) }}">{{ session.username }}</a>
+                            {% if session.user.phong != None %}
+                            (<span style="color:{{session.user_dept.color}}">{{ session.user_dept.name }}</span>)
+                            {% endif %}
+                        </td>
                         {% endif %}
                         <td><a href="{{ url_for('sessions.view', session_id=session.id) }}">{{ session.friendly_name }}</a></td>
                         <td class="table-{{ template().get_hashcat_running_class(session.hashcat.state) }}">{{ template().get_hashcat_running_text(session.hashcat.state) }}</td>
@@ -102,6 +107,6 @@
             </div>
         </div>
     </div>
-    <div class="col-1"></div>
+    <!-- <div class="col-1"></div> -->
 </div>
 {% endblock %}

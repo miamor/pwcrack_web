@@ -6,7 +6,10 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from flask_crontab import Crontab
+from secure import SecureHeaders
 
+# secure_headers = SecureHeaders()
+secure_headers = SecureHeaders(csp=False, hsts=False, xfo="DENY")
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -55,6 +58,15 @@ def create_app(config_class=None):
     from app.controllers.admin import bp as admin_bp
     app.register_blueprint(admin_bp, url_prefix='/admin')
 
+    from app.controllers.utils import bp as util_bp
+    app.register_blueprint(util_bp, url_prefix='/utils')
+
+    from app.controllers.users import bp as user_bp
+    app.register_blueprint(user_bp, url_prefix='/users')
+
+    from app.controllers.departments import bp as dep_bp
+    app.register_blueprint(dep_bp, url_prefix='/departments')
+
     from app.controllers.nodes import bp as node_bp
     app.register_blueprint(node_bp, url_prefix='/nodes')
 
@@ -85,7 +97,7 @@ def create_app(config_class=None):
 
         def user_setting_get(user_id, name, default=None):
             provider = Provider()
-            return provider.user_settings().get(user_id, name, default)
+            return provider.account_settings().get(user_id, name, default)
 
         def template():
             provider = Provider()
@@ -115,11 +127,12 @@ def create_app(config_class=None):
 
     @app.after_request
     def after_request(response):
-        response.headers['Server'] = 'Windows 98'
-        response.headers['X-Frame-Options'] = 'DENY'
-        response.headers['X-XSS-Protection'] = '1; mode=block'
-        response.headers['X-Content-Type-Options'] = 'nosniff'
-        response.headers['Referrer-Policy'] = 'no-referrer'
+        # response.headers['Server'] = 'Windows 98'
+        # response.headers['X-Frame-Options'] = 'DENY'
+        # response.headers['X-XSS-Protection'] = '1; mode=block'
+        # response.headers['X-Content-Type-Options'] = 'nosniff'
+        # response.headers['Referrer-Policy'] = 'no-referrer'
+        secure_headers.flask(response)
         return response
 
     @app.errorhandler(500)

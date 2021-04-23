@@ -1,0 +1,83 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+
+
+<div class="row mt-5">
+    <!-- <div class="col-1"></div> -->
+    <div class="col">
+        <div class="row">
+            <div class="col-12">
+                <div>
+                    <h1 class="d-inline-block" title="{{ user.full_name }}'s profile">
+                        <span>{{ user.full_name }}</span> 
+                        <span class="small">(@{{ user.username }})</span> 
+                        <a class="small" href="{{ url_for('users.edit', user_id=user.id) }}"><i class="fas fa-edit"></i> Edit</a>
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- <div class="col-1"></div> -->
+</div>
+
+
+<div class="row mt-5">
+    <!-- <div class="col-1"></div> -->
+    <div class="col">
+        <div class="row">
+            <div class="col">
+                <table class="table table-striped">
+                    <tbody>
+                        <tr>
+                            <th scope="row">Username</th>
+                            <td class="text-right">{{ user.username }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Email</th>
+                            <td class="text-right">{{ user.email }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Ldap</th>
+                            <td class="text-right">{{ user.ldap }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Is Amin</th>
+                            <td class="text-right">{{ user.admin }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col">
+                <table class="table table-striped">
+                    <tbody>
+                        <tr>
+                            <th scope="row">Full name</th>
+                            <td class="text-right">{{ user.full_name }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Phong</th>
+                            <td class="text-right">
+                                {% if user.phong != None %}
+                                <a href="{{ url_for('departments.view', dep_id=user.phong) }}"
+                                    style="color:{{ user.dept.color }}">{{ user.dept.name }}</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Chuc vu</th>
+                            <td class="text-right">{{ user.chucvu }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Phone</th>
+                            <td class="text-right">{{ user.phone }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- <div class="col-1"></div> -->
+</div>
+
+{% endblock %}

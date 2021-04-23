@@ -1,0 +1,48 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+<div class="row mt-5">
+    <div class="col-3"></div>
+    <div class="col">
+        <div class="card">
+            <h3 class="card-header">{{ 'Thêm phòng' if dept == None else 'Sửa thông tin phòng' }}</h3>
+            <div class="card-body">
+                {% set dep_id = 0 if dept == None else dept.id %}
+                <form method="post" action="{{ url_for('departments.edit_save', dep_id=dep_id) }}" autocomplete="off">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="form-group row">
+                        <label for="phone" class="col-4 col-form-label">ID</label>
+                        <div class="col">
+                            <input type="text" class="form-control" name="id" id="id" placeholder="" value="{{ '' if dept == None else dept.id }}" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-4 col-form-label"><label for="deptname">Tên phòng</label></div>
+                            <div class="col">
+                                <input name="name" type="text" id="name" class="form-control" value="{{ '' if dept == None else dept.name }}" placeholder="" autofocus>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-4 col-form-label"><label for="color">Màu</label></div>
+                            <div class="col">
+                                <input name="color" type="text" id="color" class="form-control" value="{{ '' if dept == None else dept.color }}" placeholder="">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary btn-block">{{ 'Create' if dept == None else 'Update' }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-3"></div>
+</div>
+{% endblock %}

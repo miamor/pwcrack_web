@@ -14,6 +14,9 @@ class UserModel(db.Model, UserMixin):
     ldap = db.Column(db.Boolean, default=False, index=True)
     admin = db.Column(db.Boolean, default=False, index=True)
     active = db.Column(db.Boolean, default=True, index=True)
+    phong = db.Column(db.String(30), nullable=True, default='')
+    chucvu = db.Column(db.String(255), nullable=True, default='')
+    phone = db.Column(db.String(20), nullable=True, default='')
 
     def get_id(self):
         return str(self.session_token)

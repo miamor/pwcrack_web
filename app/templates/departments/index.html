@@ -1,0 +1,54 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+<div class="row mt-5">
+    <!-- <div class="col-1"></div> -->
+    <div class="col-9"></div>
+    <div class="col-3">
+        <div class="form-group">
+            <a href="{{ url_for('departments.new') }}" class="btn btn-primary btn-block">Thêm phòng</a>
+        </div>
+    </div>
+    <!-- <div class="col-1"></div> -->
+    <div class="clear"></div>
+</div>
+
+<div class="row">
+    <!-- <div class="col-1"></div> -->
+    <div class="col">
+        <div class="card">
+            <h3 class="card-header">Phòng</h3>
+            <div class="card-body">
+                <div class="clearfix mb-2">
+                    <div class="float-right">
+                    </div>
+                </div>
+
+                <table class="table table-sm table-striped">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Members</th>
+                        <th class="text-center"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for dep in departments %}
+                    <tr>
+                        <td>{{ dep.id }}</td>
+                        <td><a href="{{ url_for('departments.view', dep_id=dep.id) }}" style="color:{{ dep.color }}">{{ dep.name }}</a></td>
+                        <td>{{ dep.users_count }}</td>
+                        <td class="text-center">
+                            <a href="{{ url_for('departments.edit', dep_id=dep.id) }}"><i class="fas fa-edit"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- <div class="col-1"></div> -->
+</div>
+{% endblock %}

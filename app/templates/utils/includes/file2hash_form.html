@@ -1,0 +1,113 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='js/dropzone-5.7.0/dist/dropzone.css') }}">
+
+
+<div class="dropzone needsclick" id="file2hash">
+    <!-- <input type="file" name="enc_files" multiple /> -->
+
+    <div class="dz-message needsclick">
+        <button type="button" class="dz-button">Drop files here or click to upload.</button><br />
+        <span class="note needsclick">(This is just a demo dropzone. Selected files are <strong>not</strong>
+            actually uploaded.)</span>
+    </div>
+
+</div>
+
+<div class="form-group mt-2">
+    <a href="#" id="export2files" class="btn btn-primary btn-block d-none">Save hashes to files</a>
+</div>
+
+<div id="hashes-files" class="mt-4 d-none">
+    <h4>Hashes files</h4>
+    <div id="hashes-files-list">
+    </div>
+</div>
+
+<script type="text/javascript" src="{{ url_for('static', filename='js/dropzone-5.7.0/dist/min/dropzone.min.js') }}"></script>
+<script type="text/javascript">
+    var hashes = {}
+    var myDropzone = new Dropzone("#file2hash", {
+        url: "{{ url_for('utils.file2hash_gethash') }}",
+        headers: {
+            'X-CSRF-TOKEN': "{{ csrf_token() }}"
+        },
+        // uploadMultiple: true,
+        allowDrop: function(event) {
+            return dataTransfer.items.length > 0 && dataTransfer.items[0].kind === 'file';
+        },
+        success: function(file, response) {
+            // Do what you want to do with your response
+            // This return statement is necessary to remove progress bar after uploading.
+            console.log('file', file)
+            // console.log('response', response)
+            hash = response.hash
+            type = response.type
+            if (hashes.hasOwnProperty(type)) {
+                hashes[type].push(hash)
+            } else {
+                hashes[type] = [hash]
+            }
+            console.log('hashes', hashes)
+            var node = document.createElement('div')
+            // node.classList.add('dz-filetype')
+            node.className = 'dz-filetype'
+            node.appendChild(document.createTextNode(type))
+            // file.previewElement.setAttribute('title', hash)
+            file.previewElement.children[1].appendChild(node)
+            // return file.previewElement.classList.add("dz-success");
+            $('#export2files').show().removeClass('d-none')
+        }
+    });
+    // $('#file2hash').dropzone({
+    //         url: "{{ url_for('utils.file2hash_gethash') }}",
+    //         headers: {
+    //             'X-CSRF-TOKEN': "{{ csrf_token() }}"
+    //         },
+    //         uploadMultiple: true,
+
+    //         // This is optional, to add an internal element that you can style
+    //         // append: '<div class="full-drop-zone"><div class="description-wrapper"><div class="description">Release the file here...</div></div></div>',
+    //         // This is optional, to selectively allow dropping
+    //         allowDrop: function(event) {
+    //             return dataTransfer.items.length > 0 && dataTransfer.items[0].kind === 'file';
+    //         }
+    //     })
+    //     // .on('drop', function(event) {
+    //     //     event.preventDefault();
+    //     //     // Do something with the files
+    //     //     console.log(event.originalEvent.dataTransfer.files);
+    //     // })
+    //     .on('complete', function(event) {
+    //         console.log('complete', event)
+    //     })
+    //     .on('success', function(event) {
+    //         console.log('success', event)
+    //     }).on('error', function(event) {
+    //         console.log(event)
+    //     });
+    $('#export2files').click(function () {
+        $('#hashes-files-list').html('')
+        $('#hashes-files').show().removeClass('d-none')
+        for (var type in hashes) {
+            if (hashes.hasOwnProperty(type)) {
+                node = $('<div class="one-hash-file row" data-type="'+type+'"> \
+                    <div class="col ftype">'+type+' ('+hashes[type].length+' hashes)</div> \
+                    <div class="col download text-right"> \
+                        <a href="javascript:download(\''+type+'\')">Download</a> \
+                    </div> \
+                </div>')
+                $('#hashes-files-list').append(node)
+            }
+        }
+        return false
+    });
+    function download(type) {
+        if (hashes.hasOwnProperty(type)) {
+            var fileContent = hashes[type].join('\n');
+            var bb = new Blob([fileContent ], { type: 'text/plain' });
+            var a = document.createElement('a');
+            a.download = 'hashes-'+type+'.txt';
+            a.href = window.URL.createObjectURL(bb);
+            a.click();
+        }
+    }
+</script>

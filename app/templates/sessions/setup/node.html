@@ -27,11 +27,16 @@
                         {% for node in nodes %}
                         <div class="custom-control custom-radio">
                             <div class="col">
-                                <input type="radio" id="n{{ node.id }}" name="node_id" class="mode-option custom-control-input" {{ 'checked' if session.session.node_id == node.id else '' }} value="{{ node.id }}">
+                                <input {{ 'disabled' if node.is_up == false else '' }} type="radio" id="n{{ node.id }}" name="node_id" class="mode-option custom-control-input" {{ 'checked' if session.session.node_id == node.id else '' }} value="{{ node.id }}">
                                 <label class="custom-control-label row" for="n{{ node.id }}">
                                     <div class="col-4">{{ node.name }}</div>
                                     <div class="col-5">{{ node.hostname }}</div>
-                                    <div class="col-3">{{ node.port }}</div>
+                                    <div class="col-2">{{ node.port }}</div>
+                                    <div class="col-1">
+                                        {% if node.is_up == false %}
+                                        <i class="fas fa-exclamation-circle text-danger" title="This host is down!"></i>
+                                        {% endif %}
+                                    </div>
                                     <div class="clearfix"></div>
                                 </label>
                             </div>

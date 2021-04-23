@@ -21,5 +21,7 @@ dist/
 build/
 *.egg-info/
 
+**/**.sqlite3
+
 .idea/
 migrations/

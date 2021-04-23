@@ -4,6 +4,7 @@ from app.lib.models.nodes import NodeModel
 from app.lib.nodes.instance import NodeInstance
 from app import db
 from sqlalchemy import and_, or_, desc
+from app.utils.node_api import NodeAPI
 
 
 class NodeManager:

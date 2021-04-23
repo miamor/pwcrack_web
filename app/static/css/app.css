@@ -12,19 +12,28 @@
     overflow: auto;
 }
 
+
 /* Fix for select2 foreground colour on dark themes. */
+
 .select2-container {
     color: black;
 }
 
+
 /* Force a form to be inline */
+
 .force-inline {
     display: inline;
 }
 
-.row-striped{
-    padding:0.25rem
+.row-striped {
+    padding: 0.25rem
 }
-.card-pb{
-    padding:8px 23px!important
+
+.card-pb {
+    padding: 8px 23px!important
+}
+
+h1 .small{
+    font-size: 14px!important
 }

@@ -31,13 +31,15 @@ def index(user_id):
 @bp.route('/<int:user_id>/logins', methods=['GET'])
 @login_required
 def logins(user_id):
-    if current_user.id != user_id:
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth.login'))
+    elif current_user.id != user_id:
         flash('Access denied', 'error')
         return redirect(url_for('home.index'))
 
     provider = Provider()
-    users = provider.users()
-    user_logins = users.get_user_logins(user_id)
+    account = provider.account()
+    user_logins = account.get_user_logins(user_id)
 
     return render_template(
         'account/logins.html',
@@ -48,7 +50,9 @@ def logins(user_id):
 @bp.route('/<int:user_id>/settings', methods=['GET'])
 @login_required
 def settings(user_id):
-    if current_user.id != user_id:
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth.login'))
+    elif current_user.id != user_id:
         flash('Access denied', 'error')
         return redirect(url_for('home.index'))
 
@@ -65,7 +69,9 @@ def settings(user_id):
 @bp.route('/<int:user_id>/settings/save', methods=['POST'])
 @login_required
 def settings_save(user_id):
-    if current_user.id != user_id:
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth.login'))
+    elif current_user.id != user_id:
         flash('Access denied', 'error')
         return redirect(url_for('home.index'))
 
@@ -106,19 +112,21 @@ def settings_save(user_id):
 @bp.route('/<int:user_id>/theme', methods=['GET'])
 @login_required
 def theme(user_id):
-    if current_user.id != user_id:
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth.login'))
+    elif current_user.id != user_id:
         flash('Access denied', 'error')
         return redirect(url_for('home.index'))
 
     provider = Provider()
     users = provider.users()
     filesystem = provider.filesystem()
-    user_settings = provider.user_settings()
+    account_settings = provider.account_settings()
     settings = provider.settings()
 
     user = users.get_by_id(current_user.id)
     themes = filesystem.get_files(os.path.join(current_app.root_path, 'static', 'css', 'themes'))
-    theme = user_settings.get(user_id, 'theme', settings.get('theme', 'lumen'))
+    theme = account_settings.get(user_id, 'theme', settings.get('theme', 'lumen'))
 
     return render_template(
         'account/theme.html',
@@ -131,7 +139,9 @@ def theme(user_id):
 @bp.route('/<int:user_id>/theme/save', methods=['POST'])
 @login_required
 def theme_save(user_id):
-    if current_user.id != user_id:
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth.login'))
+    elif current_user.id != user_id:
         flash('Access denied', 'error')
         return redirect(url_for('home.index'))
 
@@ -139,7 +149,7 @@ def theme_save(user_id):
 
     provider = Provider()
     filesystem = provider.filesystem()
-    user_settings = provider.user_settings()
+    account_settings = provider.account_settings()
 
     themes = filesystem.get_files(os.path.join(current_app.root_path, 'static', 'css', 'themes'))
 
@@ -147,7 +157,7 @@ def theme_save(user_id):
         flash('Invalid theme', 'error')
         return redirect(url_for('account.theme', user_id=user_id))
 
-    user_settings.save(user_id, 'theme', theme)
+    account_settings.save(user_id, 'theme', theme)
 
     flash('Theme saved. To make sure everything is working, please force-refresh the page (CTRL-F5)', 'success')
     return redirect(url_for('account.theme', user_id=user_id))
@@ -156,7 +166,9 @@ def theme_save(user_id):
 @bp.route('/<int:user_id>/api', methods=['GET'])
 @login_required
 def api(user_id):
-    if current_user.id != user_id:
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth.login'))
+    elif current_user.id != user_id:
         flash('Access denied', 'error')
         return redirect(url_for('home.index'))
 
@@ -174,7 +186,9 @@ def api(user_id):
 @bp.route('/<int:user_id>/api/add', methods=['POST'])
 @login_required
 def api_add(user_id):
-    if current_user.id != user_id:
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth.login'))
+    elif current_user.id != user_id:
         flash('Access denied', 'error')
         return redirect(url_for('home.index'))
 
@@ -197,7 +211,9 @@ def api_add(user_id):
 @bp.route('/<int:user_id>/api/set/<int:key_id>/status', methods=['POST'])
 @login_required
 def api_set_status(user_id, key_id):
-    if current_user.id != user_id:
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth.login'))
+    elif current_user.id != user_id:
         flash('Access denied', 'error')
         return redirect(url_for('home.index'))
 

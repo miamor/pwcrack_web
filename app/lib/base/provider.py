@@ -3,6 +3,8 @@ from app.lib.session.manager import SessionManager
 from app.lib.base.healthcheck import HealthCheck
 from app.lib.hashcat.manager import HashcatManager
 from app.lib.nodes.manager import NodeManager
+from app.lib.users.manager import UsersManager
+from app.lib.departments.manager import DepartmentsManager
 from app.lib.base.john import John
 from app.lib.base.shell import ShellManager
 from app.lib.base.wordlists import WordlistManager
@@ -10,8 +12,8 @@ from app.lib.base.system import SystemManager
 from app.lib.base.filesystem import FileSystemManager
 from app.lib.base.rules import RulesManager
 from app.lib.base.ldap import LDAPManager
-from app.lib.base.users import UserManager
-from app.lib.base.user_settings import UserSettingsManager
+from app.lib.base.account import AccountManager
+from app.lib.base.account_settings import AccountSettingsManager
 from app.lib.base.template import TemplateManager
 from app.lib.base.api import ApiManager
 from app.lib.base.cron import CronManager
@@ -27,6 +29,12 @@ class Provider:
     def settings(self):
         settings = SettingsManager()
         return settings
+    
+    def users(self):
+        return UsersManager(self.password_complexity())
+    
+    def departments(self):
+        return DepartmentsManager()
     
     def nodes(self):
         return NodeManager()
@@ -46,7 +54,7 @@ class Provider:
     def healthcheck(self):
         return HealthCheck()
     
-    def node_api(self, node):
+    def node_api(self, node=None):
         return NodeAPI(node)
 
     def hashcat(self):
@@ -104,8 +112,8 @@ class Provider:
 
         return manager
 
-    def users(self):
-        return UserManager(self.password_complexity())
+    def account(self):
+        return AccountManager(self.password_complexity())
 
     def password_complexity(self):
         settings = self.settings()
@@ -117,8 +125,8 @@ class Provider:
             settings.get('pwd_min_special', 2)
         )
 
-    def user_settings(self):
-        return UserSettingsManager()
+    def account_settings(self):
+        return AccountSettingsManager()
 
     def template(self):
         return TemplateManager()

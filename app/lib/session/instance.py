@@ -1,4 +1,5 @@
 import os
+from app.lib.models.department import DepartmentModel
 from app.lib.models.user import UserModel
 from app.lib.models.hashcat import HashcatHistoryModel
 from sqlalchemy import desc
@@ -11,6 +12,7 @@ class SessionInstance:
         self.filesystem = filesystem
         self.hashid = hashid
         self.user = UserModel.query.filter(UserModel.id == session.user_id).first()
+        self.user_dept = DepartmentModel.query.filter(DepartmentModel.id == self.user.phong).first()
 
         self._hashes_in_file = None
         self._hashfile = None

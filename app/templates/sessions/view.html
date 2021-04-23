@@ -146,6 +146,7 @@
         </div>
         {% if session.hashcat_history|length > 0 %}
         <div id="hashcat-history" class="d-none mt-4">
+            <h4>Session history</h4>
             <table class="table table-sm table-striped">
                 <thead>
                 <tr>
@@ -190,6 +191,7 @@
         </div>
         {% endif %}
         <div id="raw-progress" class="d-none mt-4">
+            <h4>Raw/Debug Information</h4>
             <table class="table table-sm table-striped">
                 <tbody>
                 {% for key, value in session.hashcat.data_raw.items() %}

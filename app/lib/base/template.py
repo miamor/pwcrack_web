@@ -1,4 +1,16 @@
 class TemplateManager:
+    def get_datetime(self, value):
+        # print('~~~~~~~~~~~', type(value))
+        return value
+
+    def get_terminate_date(self, terminate_at):
+        print('terminate_at', terminate_at)
+        return terminate_at.date()
+
+    def get_terminate_time(self, terminate_at):
+        print('terminate_at', terminate_at)
+        return terminate_at.time()
+
     def get_hashcat_running_text(self, state):
         state = int(state)
         text = 'Unknown'

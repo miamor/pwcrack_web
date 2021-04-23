@@ -70,6 +70,12 @@ def setup_hashes_save(session_id):
         flash('Access Denied', 'error')
         return redirect(url_for('home.index'))
 
+    session = sessions.get(session_id=session_id)[0]
+    print('session.hashcat', session.hashcat)
+    if session.hashcat.state != 0:
+        return redirect(url_for('sessions.setup_hashes', session_id=session_id))
+
+
     mode = int(request.form['mode'].strip())
 
     # print('request.files', request.files)
@@ -156,12 +162,12 @@ def setup_hashes_save(session_id):
 
     return redirect(url_for('sessions.setup_node', session_id=session_id))
 
+
 '''
 @bp.route('/<int:session_id>/setup/file2hash', methods=['GET'])
 @login_required
 def setup_file2hash(session_id):
     provider = Provider()
-    john = provider.john()
     sessions = provider.sessions()
 
     if not sessions.can_access(current_user, session_id):
@@ -171,21 +177,13 @@ def setup_file2hash(session_id):
     user_id = 0 if current_user.admin else current_user.id
     session = sessions.get(user_id=user_id, session_id=session_id)[0]
 
-    if session.session.smode != 3:
-        flash('This step is for [Upload encrypted file] only', 'error')
-        return redirect(url_for('sessions.setup_hashes', session_id=session_id))
-
-    hashes = sessions.john_file2hashes(session_id)
-
     return render_template(
-        'sessions/setup/file2hash.html',
+        'sessions/file2hash.html',
         session=session,
-        output_john=hashes,
-        encrypted_file=session.session.filename,
     )
 
 
-@bp.route('/<int:session_id>/setup/file2hash/save', methods=['POST'])
+@bp.route('/<int:session_id>/setup/file2hash/gethash', methods=['POST'])
 @login_required
 def setup_file2hash_save(session_id):
     provider = Provider()
@@ -208,6 +206,7 @@ def setup_file2hash_save(session_id):
 
     return redirect(url_for('sessions.setup_hashcat', session_id=session_id))
 '''
+
 
 @bp.route('/<int:session_id>/setup/hashcat', methods=['GET'])
 @login_required
@@ -363,6 +362,7 @@ def setup_node(session_id):
     provider = Provider()
     sessions = provider.sessions()
     nodes = provider.nodes()
+    
 
     if not sessions.can_access(current_user, session_id):
         flash('Access Denied', 'error')
@@ -372,6 +372,10 @@ def setup_node(session_id):
     session = sessions.get(user_id=user_id, session_id=session_id)[0]
 
     all_nodes = nodes.get(active=1)
+    node_api = provider.node_api()
+    for node in all_nodes:
+        node_api.setNode(node)
+        node.is_up = node_api.isUp()
 
     return render_template(
         'sessions/setup/node.html',
@@ -388,6 +392,10 @@ def setup_node_save(session_id):
     if not sessions.can_access(current_user, session_id):
         flash('Access Denied', 'error')
         return redirect(url_for('home.index'))
+    
+    if 'node_id' not in request.form:
+        flash('You must select a node', 'error')
+        return redirect(url_for('sessions.setup_node', session_id=session_id))
 
     node_id = int(request.form['node_id'].strip())
 

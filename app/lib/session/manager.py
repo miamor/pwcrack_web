@@ -129,7 +129,7 @@ class SessionManager:
         if active is not None:
             query = query.filter(SessionModel.active == active)
 
-        sessions = query.all()
+        sessions = query.order_by(SessionModel.created_at.desc()).all()
 
         data = []
         for session in sessions:
@@ -408,11 +408,11 @@ class SessionManager:
         # First get the session.
         session = self.get(session_id=session_id)[0]
 
-        print('~~~~~~~~ os.path.splitext(session.session.filename)[1]', os.path.splitext(session.session.filename)[1])
+        # print('~~~~~~~~ os.path.splitext(session.session.filename)[1]', os.path.splitext(session.session.filename)[1])
 
         encrypted_file = self.session_filesystem.get_uploadfile_path(session.user_id, session_id, os.path.splitext(session.session.filename)[1])
 
-        output_john = self.john.run_file2john(encrypted_file, filetype)
+        output_john, _ = self.john.run_file2john(encrypted_file, filetype)
         hashes = [output_john]
         return hashes
     

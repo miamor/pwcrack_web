@@ -1,0 +1,81 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+<div class="row mt-5">
+    <!-- <div class="col-1"></div> -->
+    <div class="col-9"></div>
+    <div class="col-3">
+        <div class="form-group">
+            <a href="{{ url_for('users.new') }}" class="btn btn-primary btn-block">Create new User</a>
+        </div>
+    </div>
+    <!-- <div class="col-1"></div> -->
+    <div class="clear"></div>
+</div>
+
+<div class="row">
+    <!-- <div class="col-1"></div> -->
+    <div class="col">
+        <div class="card">
+            <h3 class="card-header">Users</h3>
+            <div class="card-body">
+                <div class="clearfix mb-2">
+                    <div class="float-right">
+                        {% if show_all %}
+                        <a href="{{ url_for('users.index') }}">hide inactive users</a>
+                        {% else %}
+                        <a href="{{ url_for('users.index', all=1) }}">show inactive users</a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <table class="table table-sm table-striped">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Phong</th>
+                        <th>Chuc vu</th>
+                        <th class="text-center">Is Admin</th>
+                        <th class="text-center">Active</th>
+                        {% if current_user.admin %}
+                        <th class="text-center"></th>
+                        {% endif %}
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td><a href="{{ url_for('users.view', user_id=user.id) }}">{{ user.username }}</a></td>
+                        <td>{{ user.full_name }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% if user.phong != None %}
+                            <a href="{{ url_for('departments.view', dep_id=user.phong) }}" style="color:{{ user.dept.color }}">{{ user.dept.name }}</a>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.chucvu if user.chucvu != None else '' }}</td>
+                        <td class="text-center">
+                            <i class="fas fa-{{ 'check' if user.admin == 1 else 'times' }}"></i>
+                        </td>
+                        <td class="text-center">
+                            <i class="fas fa-{{ 'check' if user.active == 1 else 'times' }}"></i>
+                        </td>
+                        {% if current_user.admin %}
+                        <td class="text-center">
+                            <a href="{{ url_for('users.edit', user_id=user.id) }}"><i class="fas fa-edit"></i></a>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- <div class="col-1"></div> -->
+</div>
+{% endblock %}

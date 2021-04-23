@@ -214,62 +214,6 @@ def settings_auth_save_ldap():
     return redirect(url_for('admin.settings_auth'))
 
 
-@bp.route('/users', methods=['GET'])
-@login_required
-def users():
-    if not current_user.admin:
-        flash('Access Denied', 'error')
-        return redirect(url_for('home.index'))
-
-    users = UserModel.query.filter().order_by(UserModel.id).all()
-
-    return render_template(
-        'admin/users/index.html',
-        users=users
-    )
-
-
-@bp.route('/users/edit/<int:user_id>', methods=['GET'])
-@login_required
-def user_edit(user_id):
-    if not current_user.admin:
-        flash('Access Denied', 'error')
-        return redirect(url_for('home.index'))
-
-    user = None if user_id <= 0 else UserModel.query.filter(UserModel.id == user_id).first()
-
-    return render_template(
-        'admin/users/edit.html',
-        user=user
-    )
-
-
-@bp.route('/users/edit/<int:user_id>/save', methods=['POST'])
-@login_required
-def user_save(user_id):
-    if not current_user.admin:
-        flash('Access Denied', 'error')
-        return redirect(url_for('home.index'))
-
-    username = request.form['username'].strip() if 'username' in request.form else ''
-    password = request.form['password'].strip() if 'password' in request.form else ''
-    full_name = request.form['full_name'].strip() if 'full_name' in request.form else ''
-    email = request.form['email'].strip() if 'email' in request.form else ''
-    admin = int(request.form.get('admin', 0))
-    ldap = int(request.form.get('ldap', 0))
-    active = int(request.form.get('active', 0))
-
-    provider = Provider()
-    users = provider.users()
-
-    if not users.save(user_id, username, password, full_name, email, admin, ldap, active):
-        flash(users.get_last_error(), 'error')
-        return redirect(url_for('admin.user_edit', user_id=user_id))
-
-    flash('User saved', 'success')
-    return redirect(url_for('admin.users'))
-
-
 @bp.route('/logins', methods=['GET'])
 @login_required
 def logins():
@@ -278,8 +222,8 @@ def logins():
         return redirect(url_for('home.index'))
 
     provider = Provider()
-    users = provider.users()
-    user_logins = users.get_user_logins(0)
+    account = provider.account()
+    user_logins = account.get_user_logins(0)
 
     return render_template(
         'admin/users/logins.html',

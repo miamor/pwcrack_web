@@ -43,6 +43,21 @@
             <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('nodes.index') }}">Nodes</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('users.index') }}">Users</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('departments.index') }}">Departments</a>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="menu-settings" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Utilities
+                </a>
+                <div class="dropdown-menu" aria-labelledby="menu-settings">
+                    <a class="dropdown-item" href="{{ url_for('utils.file2hash') }}">Files to Hashes</a>
+                    <a class="dropdown-item" href="{{ url_for('utils.file2hash') }}">Extract wordlists from files</a>
+                </div>
+            </li>
             {% if current_user.is_authenticated %}
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" id="menu-settings" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

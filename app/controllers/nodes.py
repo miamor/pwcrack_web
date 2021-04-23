@@ -44,6 +44,10 @@ def index():
 @bp.route('/new', methods=['GET'])
 @login_required
 def new():
+    if not current_user.admin:
+        flash('Access Denied', 'error')
+        return redirect(url_for('nodes.index'))
+    
     return render_template(
         'nodes/new.html',
     )
@@ -52,6 +56,10 @@ def new():
 @bp.route('/create', methods=['POST'])
 @login_required
 def create():
+    if not current_user.admin:
+        flash('Access Denied', 'error')
+        return redirect(url_for('nodes.index'))
+    
     provider = Provider()
     nodes = provider.nodes()
 
@@ -156,6 +164,10 @@ def view(node_id):
 @bp.route('/<int:node_id>/update_hashcat/save', methods=['POST'])
 @login_required
 def update_hashcat_save(node_id):
+    if not current_user.admin:
+        flash('Access Denied', 'error')
+        return redirect(url_for('nodes.view', node_id=node_id))
+    
     provider = Provider()
     nodes = provider.nodes()
 
@@ -216,6 +228,10 @@ def update_hashcat_save(node_id):
 @bp.route('/<int:node_id>/active/<string:action>', methods=['POST'])
 @login_required
 def active_action(node_id, action):
+    if not current_user.admin:
+        flash('Access Denied', 'error')
+        return redirect(url_for('nodes.index'))
+    
     provider = Provider()
     nodes = provider.nodes()
 

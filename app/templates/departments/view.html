@@ -1,0 +1,73 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+
+
+<div class="row mt-5">
+    <!-- <div class="col-1"></div> -->
+    <div class="col">
+        <div class="row">
+            <div class="col-12">
+                <div>
+                    <h1 class="d-inline-block" title="{{ dept.name }}'s profile">
+                        {{ dept.name }} <span class="small">(@{{ dept.id }})</span>
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- <div class="col-1"></div> -->
+</div>
+
+
+<div class="row mt-5">
+    <div class="col-3">
+        <table class="table table-striped">
+            <tbody>
+                <tr>
+                    <th scope="row">Name</th>
+                    <td class="text-right">{{ dept.name }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="col">
+        <table class="table table-sm table-striped">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Chuc vu</th>
+                <!-- <th class="text-center">Is Admin</th> -->
+                {% if current_user.admin %}
+                <th class="text-center"></th>
+                {% endif %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for user in dept.users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td><a href="{{ url_for('users.view', user_id=user.id) }}">{{ user.username }}</a></td>
+                <td>{{ user.full_name }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.chucvu if user.chucvu != None else '' }}</td>
+                <!-- <td class="text-center">
+                    <i class="fas fa-{{ 'check' if user.admin == 1 else 'times' }}"></i>
+                </td> -->
+                {% if current_user.admin %}
+                <td class="text-center">
+                    <a href="{{ url_for('users.edit', user_id=user.id) }}"><i class="fas fa-edit"></i></a>
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+{% endblock %}

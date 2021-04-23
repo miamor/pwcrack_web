@@ -40,7 +40,7 @@ def save():
         flash('Please fill in all the fields', 'error')
         return redirect(url_for('install.index'))
 
-    if not users.save(0, username, password, full_name, email, 1, 0, 1):
+    if not users.save(0, username, password, full_name, email, admin=1, ldap=0, active=1):
         flash('Could not create user: ' + users.get_last_error(), 'error')
         return redirect(url_for('install.index'))
 
