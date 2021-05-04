@@ -215,7 +215,7 @@ class SessionManager:
             save_as
         )
         out = self.shell.execute(command)
-        print('~~~~[export_cracked_passwords] out', out)
+        # print('~~~~[export_cracked_passwords] out', out)
 
         return True
     
