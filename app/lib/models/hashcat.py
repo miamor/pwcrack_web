@@ -17,6 +17,7 @@ class HashcatModel(db.Model):
     increment_max = db.Column(db.Integer, default=0, index=True, nullable=True)
     optimised_kernel = db.Column(db.Boolean, default=False, index=True, nullable=True)
     created_at = db.Column(db.DateTime, nullable=True, default=datetime.datetime.now())
+    data = db.Column(db.String, default='', index=True, nullable=True)
 
 
 class HashcatHistoryModel(db.Model):
@@ -37,3 +38,4 @@ class HashcatHistoryModel(db.Model):
     increment_max = db.Column(db.Integer, default=0, index=True, nullable=True)
     optimised_kernel = db.Column(db.Boolean, default=False, index=True, nullable=True)
     created_at = db.Column(db.DateTime, nullable=True, default=datetime.datetime.now())
+    data = db.Column(db.String, default='', index=True, nullable=True)

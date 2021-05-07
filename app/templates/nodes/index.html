@@ -6,7 +6,7 @@
     <div class="col-9"></div>
     <div class="col-3">
         <div class="form-group">
-            <a href="{{ url_for('nodes.new') }}" class="btn btn-primary btn-block">Create new Node</a>
+            <a href="{{ url_for('nodes.new') }}" class="btn btn-primary btn-block">Thêm node mới</a>
         </div>
     </div>
     <!-- <div class="col-1"></div> -->
@@ -17,14 +17,14 @@
     <!-- <div class="col-1"></div> -->
     <div class="col">
         <div class="card">
-            <h3 class="card-header">Nodes</h3>
+            <h3 class="card-header">Danh sách Nodes</h3>
             <div class="card-body">
                 <div class="clearfix mb-2">
                     <div class="float-right">
                         {% if show_all %}
-                        <a href="{{ url_for('nodes.index') }}">hide inactive nodes</a>
+                        <a href="{{ url_for('nodes.index') }}">Ẩn các node không kích hoạt</a>
                         {% else %}
-                        <a href="{{ url_for('nodes.index', all=1) }}">show inactive nodes</a>
+                        <a href="{{ url_for('nodes.index', all=1) }}">Hiện tất cả</a>
                         {% endif %}
                     </div>
                 </div>
@@ -32,14 +32,15 @@
                 <table class="table table-sm table-striped">
                     <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Name</th>
+                        <th>ID (MÃ)</th>
+                        <th>Tên node</th>
                         <th>Hostname</th>
                         <th class="text-center">Port</th>
                         <th>Username</th>
                         <th>Password</th>
-                        <th class="text-center">Sessions</th>
-                        <th class="text-center">State</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th class="text-center">Số phiên</th>
+                        <th class="text-center">Điều khiển</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -51,6 +52,9 @@
                         <td class="text-center">{{ node.port }}</td>
                         <td>{{ node.username }}</td>
                         <td>{{ node.password }}</td>
+                        <td class="text-center">
+                            <span class="text-{{ template().get_node_status_class(node.isUp) }}"><i class="fas fa-{{ template().get_node_status_iconclass(node.isUp) }}"></i> {{ template().get_node_status_text(node.isUp) }}</span>
+                        </td>
                         <td class="text-center">{{ node.num_sessions }}</td>
                         <td class="text-center">
                             {% if node.active %}

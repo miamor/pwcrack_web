@@ -105,6 +105,7 @@
                     <tr>
                         <th scope="row">Cracked</th>
                         <td class="text-right">
+                        {% if session.hashcat.settings != None %}
                             <span>{{ '{0:,}'.format(session.hashcat.cracked_passwords) }}/{{ '{0:,}'.format(session.hashcat.all_passwords) }}</span>
                             {% if session.hashcat.cracked_passwords > 0 %}
                             <form action="{{ url_for('sessions.download_file', session_id=session.id, which_file='cracked') }}" method="post" class="force-inline" autocomplete="off">
@@ -118,6 +119,9 @@
                                 </form>
                                 {% endif %}
                             {% endif %}
+                        {% else %}
+                                <span class="text-warning">Missing configuration</span>
+                        {% endif %}
                         </td>
                     </tr>
                     </tbody>
@@ -131,12 +135,14 @@
     <div class="col-2"></div>
     <div class="col">
         <div>
+            {% if session.hashcat.settings != None %}
             <a href="#" class="raw-progress btn btn-warning">
                 {% if session.hashcat.state == 98 %}
                 <span class="mr-2 text-danger"><i class="fas fa-exclamation"></i></span>
                 {% endif %}
                 View Raw/Debug Information
             </a>
+            {% endif %}
             {% if session.hashcat_history|length > 0 %}
             <a href="#" class="hashcat-history btn btn-info">
                 <span class="mr-2"><i class="fas fa-history"></i></span>
@@ -190,6 +196,8 @@
             </table>
         </div>
         {% endif %}
+
+        {% if session.hashcat.settings != None %}
         <div id="raw-progress" class="d-none mt-4">
             <h4>Raw/Debug Information</h4>
             <table class="table table-sm table-striped">
@@ -211,6 +219,7 @@
                 </tbody>
             </table>
         </div>
+        {% endif %}
     </div>
 </div>
 
@@ -218,7 +227,7 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
-        CJ_SessionsView.init("{{ url_for('sessions.status', session_id=session.id) }}", {{ session.hashcat.state }});
+        CJ_SessionsView.init("{{ url_for('sessions.status', session_id=session.id) }}", {{ session.hashcat.state if session.hashcat.settings != None else 99 }});
     });
 </script>
 {% endblock %}

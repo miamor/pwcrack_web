@@ -33,7 +33,9 @@
                 <div class="row row-striped">
                     <div class="col-1" style="padding-right:0">{{ session.session.id }}</div>
                     <div class="col-6"><a href="{{ url_for('sessions.view', session_id=session.session.id) }}">{{ session.friendly_name }}</a></div>
+                    {% if session.hashcat.settings != None %}
                     <div class="col-4 table-{{ template().get_hashcat_running_class(session.hashcat.state) }}">{{ template().get_hashcat_running_text(session.hashcat.state) }}</div>
+                    {% endif %}
                     <div class="col-1"></div>
                 </div>
                 {% endfor %}
@@ -43,7 +45,7 @@
 </div>
 
 <div class="row mt-5">
-    {% if current_user.is_admin %}
+    {% if current_user.admin %}
     <div class="col-6">
         <div class="card">
             <h4 class="card-header">Hashcat Settings</h4>
@@ -120,11 +122,11 @@
             </div>
         </div></div>
 
-    {% if not current_user.is_admin %}
+    {% if not current_user.admin %}
     </div>
     <div class="col">
     {% endif %}
-        <div class="row {{ 'mt-3' if current_user.is_admin else '' }}"><div class="col">
+        <div class="row {{ 'mt-3' if current_user.admin else '' }}"><div class="col">
             <div class="card">
                 <h4 class="card-header">Rules</h4>
                 <div class="card-body card-pb">

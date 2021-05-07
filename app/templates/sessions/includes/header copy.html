@@ -1,24 +1,16 @@
-{% if current_user.admin != true and (session.hints == None or session.hints|length == 0) %}
-<div class="row mt-5">
-    <div class="col">
-        <div class="alert alert-info">No hints submitted.<br/> Submit information about the target or related to the document might help in cracking passwords.</div>
-    </div>
-</div>
-{% endif %}
-
 <div class="row mt-5">
     <div class="col">
         {% if session.hashes_in_file == 0 %}
-        <div class="alert alert-warning">No hashes submitted.</div>
+        <div class="alert alert-info">No hashes submitted.</div>
         {% elif session.claim == false %}
-        <div class="alert alert-warning">This task is not claimed yet.<br />
+        <div class="alert alert-info">This task is not claimed yet.<br />
             {% if current_user.admin != true %}
             <a href="{{url_for('sessions.setup_claim', session_id=session.id)}}">Claim</a> your task so that it can be
             pushed into queue.
-            {% else %}
-            Admin would not be able to config an unclaimed task.
             {% endif %}
         </div>
+        {% elif session.hashcat.node != None and session.hashcat.hashcat.node_api.isUp() == False %}
+        <div class="alert alert-danger">Selected node (hosted at <a href="https://{{session.hashcat.node.hostname}}:{{session.hashcat.node.port}}">{{session.hashcat.node.hostname}}</a>) is down. <a href="{{url_for('sessions.setup_node', session_id=session.id)}}">Switch to other node</a></div>
         {% endif %}
     </div>
 </div>

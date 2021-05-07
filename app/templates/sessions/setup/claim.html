@@ -1,0 +1,36 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+
+
+{% set active_nav = 'claim' %}
+{% include 'sessions/includes/header.html' %}
+
+<div class="row mt-5">
+    <div class="col-2">
+        {% include 'sessions/includes/nav.html' %}
+    </div>
+    <div class="col">
+        <form method="post" enctype="multipart/form-data"
+            action="{{ url_for('sessions.setup_claim_save', session_id=session.id) }}" autocomplete="off">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="card">
+                <h4 class="card-header">Claim your task</h4>
+                <div class="card-body">
+
+                    <div class="alert alert-danger mb-3">
+                        Claim your task so that it can be pushed to queue.<br/>
+                        Make sure that you have uploaded hashes correctly.<br/>
+                        Once this is claimed, it cannot be undone !
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary btn-block">Claim !</button>
+                    </div>
+                </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

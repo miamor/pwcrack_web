@@ -143,27 +143,27 @@ class ApiSession(ApiBase):
 
         result = False
         if data['action'] == 'start':
-            result = sessions.hashcat_action(session.session.name, 'start', session_id)
+            result = sessions.hashcat_action(session, 'start', session_id)
         elif data['action'] == 'stop':
             # Execute only if session is currently running or is paused.
             if state == 1 or state == 4:
-                result = sessions.hashcat_action(session.session.name, 'stop')
+                result = sessions.hashcat_action(session, 'stop')
         elif data['action'] == 'pause':
             # Execute only if session is running.
             if state == 1:
-                result = sessions.hashcat_action(session.session.name, 'pause')
+                result = sessions.hashcat_action(session, 'pause')
         elif data['action'] == 'resume':
             # Execute only if session is paused.
             if state == 4:
-                result = sessions.hashcat_action(session.session.name, 'resume')
+                result = sessions.hashcat_action(session, 'resume')
         elif data['action'] == 'rebuild':
             # Execute only if session is not running or is paused.
             if state != 1 and state != 4:
-                result = sessions.hashcat_action(session.session.name, 'reset')
+                result = sessions.hashcat_action(session, 'reset')
         elif data['action'] == 'restore':
             # Execute only if session is not running or is paused.
             if state != 1 and state != 4:
-                result = sessions.hashcat_action(session.session.name, 'restore')
+                result = sessions.hashcat_action(session, 'restore')
 
         if result is False:
             return self.send_error_response(5008, 'Could not execute action', '')
@@ -213,6 +213,7 @@ class ApiSession(ApiBase):
         api_session.userId = session.user_id
         api_session.screenName = session.screen_name
         api_session.active = session.active
+        api_session.hints = session.hints
         api_session.notificationEnabled = session.notifications_enabled
         api_session.createdAt = session.created_at.strftime('%Y-%m-%d %H:%M')
         api_session.friendlyName = session.friendly_name

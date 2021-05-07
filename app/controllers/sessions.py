@@ -25,7 +25,7 @@ def create():
         flash('Please enter a session description', 'error')
         return redirect(url_for('home.index'))
 
-    session = sessions.create(current_user.id, description, current_user.username)
+    session = sessions.create(current_user.id, description, current_user.username, current_user.admin)
     if session is None:
         flash('Could not create session', 'error')
         return redirect(url_for('home.index'))
@@ -51,11 +51,20 @@ def setup_hashes(session_id):
 
     uploaded_filename_this_session = session.session.filename if session.session.filename else ''
 
+
+    session_uploaded_hashes = sessions.session_filesystem.extract_session_uploaded_hash(session.user_id, session_id)
+
+
+    print('[controllers/sessions][setup_hashes] uploaded_hashfiles', uploaded_hashfiles)
+    print('[controllers/sessions][setup_hashes] uploaded_filename_this_session', uploaded_filename_this_session)
+    print('[controllers/sessions][setup_hashes] session_uploaded_hashes', session_uploaded_hashes)
+
     return render_template(
         'sessions/setup/hashes.html',
         session=session,
-        uploaded_hashfiles_json=json.dumps(uploaded_hashfiles, indent=4, sort_keys=True, default=str),
         uploaded_filename_this_session=uploaded_filename_this_session,
+        uploaded_hashfiles_json=json.dumps(uploaded_hashfiles, indent=4, sort_keys=True, default=str),
+        session_uploaded_hashes=session_uploaded_hashes
     )
 
 
@@ -70,8 +79,13 @@ def setup_hashes_save(session_id):
         flash('Access Denied', 'error')
         return redirect(url_for('home.index'))
 
-    session = sessions.get(session_id=session_id)[0]
-    print('session.hashcat', session.hashcat)
+    user_id = 0 if current_user.admin else current_user.id
+    session = sessions.get(user_id=user_id, session_id=session_id)[0]
+
+    if not current_user.admin and session.claim:
+        flash('You have claimed this task. You cannot edit hashes anymore.', 'error')
+        return redirect(url_for('sessions.setup_hashes', session_id=session_id))
+
     if session.hashcat.state != 0:
         return redirect(url_for('sessions.setup_hashes', session_id=session_id))
 
@@ -160,7 +174,161 @@ def setup_hashes_save(session_id):
     }
     sessions.update(session_id, update_dict)
 
+    return redirect(url_for('sessions.setup_hint', session_id=session_id))
+
+
+@bp.route('/<int:session_id>/setup/hint', methods=['GET'])
+@login_required
+def setup_hint(session_id):
+    provider = Provider()
+    sessions = provider.sessions()
+
+    if not sessions.can_access(current_user, session_id):
+        flash('Access Denied', 'error')
+        return redirect(url_for('home.index'))
+    
+    user_id = 0 if current_user.admin else current_user.id
+    session = sessions.get(user_id=user_id, session_id=session_id)[0]
+
+    return render_template(
+        'sessions/setup/hint.html',
+        session=session,
+    )
+
+@bp.route('/<int:session_id>/setup/hint/save', methods=['POST'])
+@login_required
+def setup_hint_save(session_id):
+    provider = Provider()
+    sessions = provider.sessions()
+
+    if not sessions.can_access(current_user, session_id):
+        flash('Access Denied', 'error')
+        return redirect(url_for('home.index'))
+
+    user_id = 0 if current_user.admin else current_user.id
+    session = sessions.get(user_id=user_id, session_id=session_id)[0]
+
+    hints = request.form['hints'].strip()
+
+    update_dict = {
+        'hints': hints
+    }
+    sessions.update(session_id, update_dict)
+
+    if current_user.admin:
+        return redirect(url_for('sessions.setup_node', session_id=session_id))
+    elif not session.claim:
+        return redirect(url_for('sessions.setup_claim', session_id=session_id))
+    return redirect(url_for('sessions.view', session_id=session_id))
+    
+
+
+@bp.route('/<int:session_id>/settings', methods=['GET'])
+@login_required
+def settings(session_id):
+    provider = Provider()
+    sessions = provider.sessions()
+
+    if not sessions.can_access(current_user, session_id):
+        flash('Access Denied', 'error')
+        return redirect(url_for('home.index'))
+
+    if not current_user.admin:
+        flash('Permission denied', 'error')
+        return redirect(url_for('sessions.view', session_id=session_id))
+
+    user_id = 0 if current_user.admin else current_user.id
+    session = sessions.get(user_id=user_id, session_id=session_id)[0]
+
+    return render_template(
+        'sessions/settings.html',
+        session=session
+    )
+
+
+@bp.route('/<int:session_id>/settings/save', methods=['POST'])
+@login_required
+def settings_save(session_id):
+    provider = Provider()
+    sessions = provider.sessions()
+    
+    user_id = 0 if current_user.admin else current_user.id
+    session = sessions.get(user_id=user_id, session_id=session_id)[0]
+
+    if not sessions.can_access(current_user, session_id):
+        flash('Access Denied', 'error')
+        return redirect(url_for('home.index'))
+
+    if not current_user.admin and session.claim:
+        flash('You have claimed this task. You cannot edit hashes anymore.', 'error')
+        return redirect(url_for('sessions.settings', session_id=session_id))
+
+    termination_date = request.form['termination_date'].strip()
+    termination_time = request.form['termination_time'].strip()
+    notifications_enabled = int(request.form.get('notifications_enabled', 0))
+
+    if len(termination_date) == 0:
+        flash('Please enter a termination date', 'error')
+        return redirect(url_for('sessions.view', session_id=session_id))
+
+    if len(termination_time) == 0:
+        # Default to 23:59.
+        termination_time = '23:59'
+
+    if not sessions.set_termination_datetime(session_id, termination_date, termination_time):
+        flash('Invalid termination date/time entered', 'error')
+        return redirect(url_for('sessions.view', session_id=session_id))
+
+    sessions.set_notifications(session_id, notifications_enabled)
+
+    if session.node_id is not None and session.node_id > 0:
+        sessions.sync_settings_to_node(session_id)
+
+    # flash('Settings saved', 'success')
     return redirect(url_for('sessions.setup_node', session_id=session_id))
+
+
+
+@bp.route('/<int:session_id>/setup/claim', methods=['GET'])
+@login_required
+def setup_claim(session_id):
+    provider = Provider()
+    sessions = provider.sessions()
+
+    if not sessions.can_access(current_user, session_id):
+        flash('Access Denied', 'error')
+        return redirect(url_for('home.index'))
+    
+    user_id = 0 if current_user.admin else current_user.id
+    session = sessions.get(user_id=user_id, session_id=session_id)[0]
+
+    return render_template(
+        'sessions/setup/claim.html',
+        session=session,
+    )
+
+@bp.route('/<int:session_id>/setup/claim/save', methods=['POST'])
+@login_required
+def setup_claim_save(session_id):
+    provider = Provider()
+    sessions = provider.sessions()
+
+    if not sessions.can_access(current_user, session_id):
+        flash('Access Denied', 'error')
+        return redirect(url_for('home.index'))
+
+    user_id = 0 if current_user.admin else current_user.id
+    session = sessions.get(user_id=user_id, session_id=session_id)[0]
+
+    update_dict = {
+        'claim': True
+    }
+    sessions.update(session_id, update_dict)
+
+    flash('Your task has been claimed', 'success')
+    if current_user.admin:
+        return redirect(url_for('sessions.setup_node', session_id=session_id))
+    return redirect(url_for('sessions.view', session_id=session_id))
 
 
 '''
@@ -220,6 +388,10 @@ def setup_hashcat(session_id):
         flash('Access Denied', 'error')
         return redirect(url_for('home.index'))
 
+    if not current_user.admin:
+        flash('Permission denied', 'error')
+        return redirect(url_for('sessions.view', session_id=session_id))
+
     user_id = 0 if current_user.admin else current_user.id
     session = sessions.get(user_id=user_id, session_id=session_id)[0]
 
@@ -253,6 +425,10 @@ def setup_hashcat_save(session_id):
     if not sessions.can_access(current_user, session_id):
         flash('Access Denied', 'error')
         return redirect(url_for('home.index'))
+
+    if not current_user.admin:
+        flash('Permission denied', 'error')
+        return redirect(url_for('sessions.view', session_id=session_id))
 
     hash_type = request.form['hash-type'].strip()
     optimised_kernel = int(request.form.get('optimised_kernel', 0))
@@ -295,6 +471,10 @@ def setup_mask(session_id):
         flash('Access Denied', 'error')
         return redirect(url_for('home.index'))
 
+    if not current_user.admin:
+        flash('Permission denied', 'error')
+        return redirect(url_for('sessions.view', session_id=session_id))
+
     user_id = 0 if current_user.admin else current_user.id
     session = sessions.get(user_id=user_id, session_id=session_id)[0]
 
@@ -313,6 +493,10 @@ def setup_mask_save(session_id):
     if not sessions.can_access(current_user, session_id):
         flash('Access Denied', 'error')
         return redirect(url_for('home.index'))
+
+    if not current_user.admin:
+        flash('Permission denied', 'error')
+        return redirect(url_for('sessions.view', session_id=session_id))
 
     mask = request.form['compiled-mask'].strip()
     enable_increments = int(request.form.get('enable_increments', 0))
@@ -368,6 +552,10 @@ def setup_node(session_id):
         flash('Access Denied', 'error')
         return redirect(url_for('home.index'))
 
+    if not current_user.admin:
+        flash('Permission denied', 'error')
+        return redirect(url_for('sessions.view', session_id=session_id))
+
     user_id = 0 if current_user.admin else current_user.id
     session = sessions.get(user_id=user_id, session_id=session_id)[0]
 
@@ -392,6 +580,10 @@ def setup_node_save(session_id):
     if not sessions.can_access(current_user, session_id):
         flash('Access Denied', 'error')
         return redirect(url_for('home.index'))
+
+    if not current_user.admin:
+        flash('Permission denied', 'error')
+        return redirect(url_for('sessions.view', session_id=session_id))
     
     if 'node_id' not in request.form:
         flash('You must select a node', 'error')
@@ -400,8 +592,10 @@ def setup_node_save(session_id):
     node_id = int(request.form['node_id'].strip())
 
     sessions.set_node(session_id, node_id)
+    sessions.sync_settings_to_node(session_id)
 
-    return redirect(url_for('sessions.settings', session_id=session_id))
+    # flash('Settings saved', 'success')
+    return redirect(url_for('sessions.setup_hashcat', session_id=session_id))
 
 
 @bp.route('/<int:session_id>/setup/wordlist', methods=['GET'])
@@ -415,6 +609,10 @@ def setup_wordlist(session_id):
     if not sessions.can_access(current_user, session_id):
         flash('Access Denied', 'error')
         return redirect(url_for('home.index'))
+
+    if not current_user.admin:
+        flash('Permission denied', 'error')
+        return redirect(url_for('sessions.view', session_id=session_id))
 
     user_id = 0 if current_user.admin else current_user.id
     session = sessions.get(user_id=user_id, session_id=session_id)[0]
@@ -443,6 +641,10 @@ def setup_wordlist_save(session_id):
     if not sessions.can_access(current_user, session_id):
         flash('Access Denied', 'error')
         return redirect(url_for('home.index'))
+
+    if not current_user.admin:
+        flash('Permission denied', 'error')
+        return redirect(url_for('sessions.view', session_id=session_id))
 
     wordlist_type = int(request.form['wordlist_type'].strip())
 
@@ -533,6 +735,10 @@ def action(session_id):
         flash('Access Denied', 'error')
         return redirect(url_for('home.index'))
 
+    if not current_user.admin:
+        flash('Permission denied', 'error')
+        return redirect(url_for('sessions.view', session_id=session_id))
+
     user_id = 0 if current_user.admin else current_user.id
     session = sessions.get(user_id=user_id, session_id=session_id)[0]
 
@@ -541,11 +747,17 @@ def action(session_id):
         return redirect(url_for('sessions.view', session_id=session_id))
 
     action = request.form['action'].strip()
-    result = sessions.hashcat_action(session.session.name, action, session_id)
-    if result is False:
-        flash('Could not execute action. Please check that all settings have been configured and try again.', 'error')
+    result = sessions.hashcat_action(session, action, session_id)
+    # if result is False:
+    if result['response'] == 'error':
+        # Selected node (hosted at <a href="https://{{session.hashcat.node.hostname}}:{{session.hashcat.node.port}}">{{session.hashcat.node.hostname}}</a>) is down. <a href="{{url_for('sessions.setup_node', session_id=session.id)}}">Switch to other node</a>
+        # flash('Could not execute action. Please check that all settings have been configured and try again.', 'error')
+        from flask import Markup
+        html = Markup("Could not execute action. Make sure selected node (hosted at <a href=\"https://{}:{}\">{}</a>) is up and running API agent. <br/> If the node is down, <a href=\"{}\">switch to other node</a>".format(session.hashcat.node.hostname, session.hashcat.node.port, session.hashcat.node.hostname, url_for('sessions.setup_node', session_id=session.id)))
+        flash(html, 'error')
         return redirect(url_for('sessions.view', session_id=session_id))
-
+    
+    flash('{} completed'.format(action), 'success')
     return redirect(url_for('sessions.view', session_id=session_id))
 
 
@@ -560,59 +772,6 @@ def download_file(session_id, which_file):
         return redirect(url_for('home.index'))
 
     return sessions.download_file(session_id, which_file)
-
-
-@bp.route('/<int:session_id>/settings', methods=['GET'])
-@login_required
-def settings(session_id):
-    provider = Provider()
-    sessions = provider.sessions()
-
-    if not sessions.can_access(current_user, session_id):
-        flash('Access Denied', 'error')
-        return redirect(url_for('home.index'))
-
-    user_id = 0 if current_user.admin else current_user.id
-    session = sessions.get(user_id=user_id, session_id=session_id)[0]
-
-    return render_template(
-        'sessions/settings.html',
-        session=session
-    )
-
-
-@bp.route('/<int:session_id>/settings/save', methods=['POST'])
-@login_required
-def settings_save(session_id):
-    provider = Provider()
-    sessions = provider.sessions()
-
-    if not sessions.can_access(current_user, session_id):
-        flash('Access Denied', 'error')
-        return redirect(url_for('home.index'))
-
-    termination_date = request.form['termination_date'].strip()
-    termination_time = request.form['termination_time'].strip()
-    notifications_enabled = int(request.form.get('notifications_enabled', 0))
-
-    if len(termination_date) == 0:
-        flash('Please enter a termination date', 'error')
-        return redirect(url_for('sessions.view', session_id=session_id))
-
-    if len(termination_time) == 0:
-        # Default to 23:59.
-        termination_time = '23:59'
-
-    if not sessions.set_termination_datetime(session_id, termination_date, termination_time):
-        flash('Invalid termination date/time entered', 'error')
-        return redirect(url_for('sessions.view', session_id=session_id))
-
-    sessions.set_notifications(session_id, notifications_enabled)
-
-    sessions.sync_settings_to_node(session_id)
-
-    flash('Settings saved', 'success')
-    return redirect(url_for('sessions.setup_hashcat', session_id=session_id))
 
 
 @bp.route('/<int:session_id>/history/apply/<int:history_id>', methods=['POST'])
@@ -652,7 +811,7 @@ def status(session_id):
     user_id = 0 if current_user.admin else current_user.id
     session = sessions.get(user_id=user_id, session_id=session_id)[0]
     
-    sessions.hashcat_action(session.session.name, 'synchronize_from_node')
+    sessions.hashcat_action(session, 'synchronize_from_node')
 
     return json.dumps({'result': True, 'status': session.hashcat.state})
 
@@ -686,6 +845,10 @@ def active_action(session_id, action):
 
     if not sessions.can_access(current_user, session_id):
         flash('Access Denied', 'error')
+        return redirect(url_for('home.index'))
+
+    if not current_user.admin:
+        flash('Permission denied', 'error')
         return redirect(url_for('home.index'))
 
     if action not in ['show', 'hide']:

@@ -9,6 +9,7 @@ class NodeInstance:
     def __init__(self, node):
         self.node = node
         self.sessions = SessionModel.query.filter(SessionModel.node_id == self.id).all()
+        self.isUp = False
 
     @property
     def id(self):
@@ -45,6 +46,7 @@ class NodeInstance:
     @property
     def validation(self):
         return self.__validate()
+    
 
     def __validate(self):
         errors = []

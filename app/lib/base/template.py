@@ -52,3 +52,12 @@ class TemplateManager:
             text = 'danger'
 
         return text
+
+    def get_node_status_text(self, isUp):
+        return 'Alive' if isUp else 'Down'
+
+    def get_node_status_class(self, isUp):
+        return 'success' if isUp else 'danger'
+
+    def get_node_status_iconclass(self, isUp):
+        return 'check-circle' if isUp else 'times-circle'

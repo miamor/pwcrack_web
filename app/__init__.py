@@ -25,6 +25,12 @@ def create_app(config_class=None):
 
     app = Flask(__name__, instance_path=data_instance_path, instance_relative_config=True)
 
+
+    # import logging
+    # log = logging.getLogger('werkzeug')
+    # log.setLevel(logging.ERROR)
+
+
     try:
         os.makedirs(app.instance_path)
     except OSError:

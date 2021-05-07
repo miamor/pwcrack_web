@@ -29,7 +29,14 @@ class SessionFileSystem:
 
     def get_hashfile_path(self, user_id, session_id):
         return os.path.join(self.get_user_data_path(user_id, session_id), 'hashes.txt')
-    
+
+    def extract_session_uploaded_hash(self, user_id, session_id):
+        path = self.get_hashfile_path(user_id, session_id)
+        print('[SessionFileSystem][extract_session_uploaded_hash] path', path)
+        if os.path.isfile(path):
+            return open(path, 'r').read()
+        return ''
+
     def get_uploadfile_path(self, user_id, session_id, ext):
         return os.path.join(self.get_user_data_path(user_id, session_id), 'upload_file'+ext)
     
@@ -128,6 +135,7 @@ class SessionFileSystem:
 
     def save_hashes(self, user_id, session_id, hashes):
         save_as = self.get_hashfile_path(user_id, session_id)
+        print('******** save_as', save_as)
         return self.write_to_file(save_as, hashes)
 
     def write_to_file(self, file, data):

@@ -1,4 +1,5 @@
 import re
+import json
 import random
 import string
 import os
@@ -57,7 +58,7 @@ class SessionManager:
     def get_by_nodeid(self, node_id):
         return SessionModel.query.filter(SessionModel.node_id == node_id).all()
 
-    def create(self, user_id, description, prefix):
+    def create(self, user_id, description, prefix, is_admin):
         prefix = self.sanitise_name(prefix) + '_'
         name = self.generate_name(prefix=prefix, length=4)
 
@@ -65,13 +66,16 @@ class SessionManager:
         session = self.__get(user_id, name, True)
         if session:
             return session
+        
+        claim = True if is_admin else False
 
         session = SessionModel(
             user_id=user_id,
             name=name,
             description=description,
             active=True,
-            screen_name=''
+            screen_name='',
+            claim=claim
         )
         db.session.add(session)
         db.session.commit()
@@ -140,6 +144,39 @@ class SessionManager:
             data.append(instance)
 
         return data
+    
+
+    def session_sync_hashcat_status(self, session):
+        hashcat_instance = session.hashcat
+        data = hashcat_instance.hashcat.sync_hashcat_status(hashcat_instance.hashcat_data_raw, session.screen_name, hashcat_instance.tail_screen)
+        
+        hashcat_instance.settings.data = json.dumps(data)
+
+        db.session.commit()
+        db.session.refresh(hashcat_instance.settings)
+        return True
+    
+
+    def session_sync_hashcat_status_all(self):
+        sessions = SessionModel.query.order_by(SessionModel.created_at.desc()).all()
+
+        data = []
+        for session in sessions:
+            node = NodeModel.query.filter(NodeModel.id == session.node_id).first()
+            hashcat_instance = HashcatInstance(session, node, self.session_filesystem, self.hashcat, self.wordlists)
+
+            # print('hashcat_instance.settings', hashcat_instance.settings)
+
+            if hashcat_instance.settings is not None:
+                data = json.dumps(hashcat_instance.hashcat.sync_hashcat_status(hashcat_instance.hashcat_data_raw, session.screen_name, hashcat_instance.tail_screen))
+            
+                hashcat_instance.settings.data = data
+
+                db.session.commit()
+                db.session.refresh(hashcat_instance.settings)
+        
+        return True
+
 
     def restore_hashcat_history(self, session_id, history_id):
         history = HashcatHistoryModel.query.filter(HashcatHistoryModel.id == history_id).first()
@@ -251,6 +288,7 @@ class SessionManager:
                 'filename': session.session.filename,
                 'screen_name': session.session.screen_name,
                 'active': session.session.active,
+                'hints': session.hints,
                 # 'terminate_at': str(session.session.terminate_at),
                 # 'created_at': str(session.session.created_at)
             },
@@ -292,6 +330,7 @@ class SessionManager:
             'session_record': {
                 'id': session.session.id,
                 'user_id': session.session.user_id,
+                'hints': session.hints,
             },
             'hashcat_record': {
                 'id': session.hashcat.settings.id,
@@ -341,6 +380,7 @@ class SessionManager:
             'session_record': {
                 'id': session.session.id,
                 'user_id': session.session.user_id,
+                'hints': session.hints,
             },
             'hashcat_record': {
                 'id': session.hashcat.settings.id,
@@ -378,6 +418,7 @@ class SessionManager:
                 'id': session.session.id,
                 'user_id': session.session.user_id,
                 'terminate_at': str(session.session.terminate_at),
+                'hints': session.hints
             },
         }
         
@@ -398,11 +439,17 @@ class SessionManager:
         return self.hashcat.node_api.get_rules_from_node()
 
 
-    def hashcat_action(self, session_name, action, session_id=0):
-        if action == 'start' and session_id > 0:
+    def hashcat_action(self, session, action, session_id=0):
+        print('session', session)
+        session_name = session.session.name
+        if action == 'synchronize_from_node':
+            self.session_sync_hashcat_status(session)
+        elif action == 'start' and session_id > 0:
             # Every time we start a session, we make a copy of the settings and put them in the hashcat_history table.
             self.__save_hashcat_history(session_id)
-        return self.hashcat.node_api.hashcat_action(session_name, action)
+            self.session_sync_hashcat_status(session)
+        resp = self.hashcat.node_api.hashcat_action(session_name, action)
+        return resp
 
     def john_file2hashes(self, session_id, filetype=None):
         # First get the session.
@@ -525,7 +572,7 @@ class SessionManager:
             if status == 1 or status == 4:
                 # If it's running or paused, terminate.
                 print("Terminating session %d" % past_session.id)
-                self.hashcat_action(session.id, 'stop')
+                self.hashcat_action(session, 'stop', session.id)
 
     def get_data_files(self, user_id, session_id):
         user_data_path = self.session_filesystem.get_user_data_path(user_id, session_id)
@@ -627,6 +674,10 @@ class SessionManager:
                 session.filename = val
             elif key == 'node_id':
                 session.node_id = val
+            elif key == 'hints':
+                session.hints = val
+            elif key == 'claim':
+                session.claim = val
 
         db.session.commit()
         db.session.refresh(session)

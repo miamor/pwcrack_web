@@ -38,6 +38,9 @@ def index():
         all_sessions = sessions.get(active=active)
     else:
         all_sessions = sessions.get(user_id=current_user.id, active=active)
+    
+    # for s in all_sessions:
+    #     print('***', s.id, 's.hashcat.settings', s.hashcat.settings)
         
     # processes = sessions.get_running_processes()
 
@@ -50,3 +53,14 @@ def index():
         # processes=processes,
         show_all=show_all
     )
+
+
+
+@bp.route('/synchronize_from_nodes', methods=['GET'])
+def synchronize_from_nodes():
+    provider = Provider()
+    sessions = provider.sessions()
+    sessions.session_sync_hashcat_status_all()
+    
+    flash('Synchronized', 'success')
+    return redirect(url_for('home.index'))

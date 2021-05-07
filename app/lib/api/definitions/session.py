@@ -7,6 +7,7 @@ class Session:
         self.terminateAt = ''
         self.userId = 0
         self.screenName = ''
+        self.hints = ''
         self.active = False
         self.notificationEnabled = False
         self.createdAt = ''

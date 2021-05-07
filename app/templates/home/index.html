@@ -10,12 +10,12 @@
             <div class="row">
                 <div class="col-9">
                     <div class="form-group">
-                        <input type="text" name="description" id="description" class="form-control" placeholder="Enter your new session's description here." required>
+                        <input type="text" name="description" id="description" class="form-control" placeholder="Tiêu đề " required>
                     </div>
                 </div>
                 <div class="col-3">
                     <div class="form-group">
-                        <button type="submit" class="btn btn-primary btn-block">Create Session</button>
+                        <button type="submit" class="btn btn-primary btn-block">Thêm tác vụ</button>
                     </div>
                 </div>
             </div>
@@ -28,14 +28,17 @@
     <!-- <div class="col-1"></div> -->
     <div class="col">
         <div class="card">
-            <h3 class="card-header">Sessions</h3>
+            <h3 class="card-header">
+                <a href="{{ url_for('home.synchronize_from_nodes') }}" data-action="synchronize_from_nodes" title="Synchronize" class="float-right ml-2 btn btn-primary"><i class="fas fa-sync"></i> Synchronize</a>
+                Tác vụ
+            </h3>
             <div class="card-body">
                 <div class="clearfix mb-2">
                     <div class="float-right">
                         {% if show_all %}
-                        <a href="{{ url_for('home.index') }}">hide inactive sessions</a>
+                        <a href="{{ url_for('home.index') }}">Ẩn các tác vụ không kích hoạt</a>
                         {% else %}
-                        <a href="{{ url_for('home.index', all=1) }}">show inactive sessions</a>
+                        <a href="{{ url_for('home.index', all=1) }}">Hiện tất cả các tác vụ (bao gồm cả các tác vụ không kích hoạt)</a>
                         {% endif %}
                     </div>
                 </div>
@@ -43,16 +46,17 @@
                 <table class="table table-sm table-striped">
                     <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>ID (MÃ)</th>
                         {% if current_user.admin %}
-                        <th>User</th>
+                        <th>Người đăng</th>
                         {% endif %}
-                        <th>Name</th>
-                        <th>State</th>
-                        <th class="text-right">Progress</th>
-                        <th class="text-right">Cracked</th>
-                        <th class="text-center">State</th>
-                        <th></th>
+                        <th>Tên tác vụ</th>
+                        <th>Trạng thái</th>
+                        <th class="text-right">Tiến trình</th>
+                        <th class="text-right">Đã phá</th>
+                        {% if current_user.admin %}
+                        <th class="text-center">Điều khiển</th>
+                        {% endif %}
                     </tr>
                     </thead>
                     <tbody>
@@ -61,16 +65,31 @@
                         <td>{{ session.id }}</td>
                         {% if current_user.admin %}
                         <td>
-                            <a href="{{ url_for('users.view', user_id=session.user.id) }}">{{ session.username }}</a>
-                            {% if session.user.phong != None %}
-                            (<span style="color:{{session.user_dept.color}}">{{ session.user_dept.name }}</span>)
-                            {% endif %}
+                            <a style="color:{{session.user_dept.color}}" href="{{ url_for('users.view', user_id=session.user.id) }}">{{ session.username }}</a>
                         </td>
                         {% endif %}
                         <td><a href="{{ url_for('sessions.view', session_id=session.id) }}">{{ session.friendly_name }}</a></td>
-                        <td class="table-{{ template().get_hashcat_running_class(session.hashcat.state) }}">{{ template().get_hashcat_running_text(session.hashcat.state) }}</td>
-                        <td class="text-right">{{ session.hashcat.progress }}%</td>
+                        {% if session.hashcat.settings != None %}
+                        <td class="table-{{ template().get_hashcat_running_class(session.hashcat.state) }}">
+                            {{ template().get_hashcat_running_text(session.hashcat.state) }}
+                        </td>
+                        {% elif session.claim == 1 %}
+                        <td class="table-danger" title="">
+                            No hashcat instance
+                        </td>
+                        {% else %}
+                        <td>
+                            {{ 'Missing configuration' if session.claim else 'Not Claimed' }}
+                        </td>
+                        {% endif %}
+
                         <td class="text-right">
+                        {% if session.hashcat.settings != None %}
+                            {{ session.hashcat.progress }}%
+                        {% endif %}
+                        </td>
+                        <td class="text-right">
+                        {% if session.hashcat.settings != None %}
                             <span>{{ '{0:,}'.format(session.hashcat.cracked_passwords) }}/{{ '{0:,}'.format(session.hashcat.all_passwords) }}</span>
                             {% if session.hashcat.cracked_passwords > 0 %}
                             <span>
@@ -80,26 +99,35 @@
                                 </form>
                             </span>
                             {% endif %}
+                        {% endif %}
                         </td>
+
+                        {% if current_user.admin %}
                         <td class="text-center">
-                            {% if session.active %}
-                            <form action="{{ url_for('sessions.active_action', session_id=session.id, action='hide') }}" method="post" class="force-inline" autocomplete="off">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <a href="#" class="submit-on-click" title="Click here to hide"><i class="fas fa-eye-slash"></i></a>
-                            </form>
-                            {% else %}
-                            <form action="{{ url_for('sessions.active_action', session_id=session.id, action='show') }}" method="post" class="force-inline" autocomplete="off">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <a href="#" class="submit-on-click" title="Click here to show"><i class="fas fa-eye"></i></a>
-                            </form>
-                            {% endif %}
+                            <div class="row">
+                                <div class="col text-right" style="padding:0">
+                                    {% if session.active %}
+                                    <form action="{{ url_for('sessions.active_action', session_id=session.id, action='hide') }}" method="post" class="force-inline" autocomplete="off">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <a href="#" class="submit-on-click" title="Click here to hide"><i class="fas fa-eye-slash"></i></a>
+                                    </form>
+                                    {% else %}
+                                    <form action="{{ url_for('sessions.active_action', session_id=session.id, action='show') }}" method="post" class="force-inline" autocomplete="off">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <a href="#" class="submit-on-click" title="Click here to show"><i class="fas fa-eye"></i></a>
+                                    </form>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col text-left" style="padding:0">
+                                    <form action="{{ url_for('sessions.delete', session_id=session.id) }}" method="post" class="d-inline ml-1" id="delete-record-form-{{ session.id }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <a href="#" class="confirm-delete text-danger"><i class="fas fa-trash"></i></a>
+                                    </form>
+                                </div>
+                            </div>
                         </td>
-                        <td class="text-center">
-                            <form action="{{ url_for('sessions.delete', session_id=session.id) }}" method="post" class="d-inline ml-1" id="delete-record-form-{{ session.id }}">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <a href="#" class="confirm-delete text-danger"><i class="fas fa-trash"></i></a>
-                            </form>
-                        </td>
+                        {% endif %}
                     </tr>
                     {% endfor %}
                     </tbody>

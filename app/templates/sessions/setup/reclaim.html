@@ -1,0 +1,34 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+
+
+{% set active_nav = 'reclaim' %}
+{% include 'sessions/includes/header.html' %}
+
+<div class="row mt-5">
+    <div class="col-2">
+        {% include 'sessions/includes/nav.html' %}
+    </div>
+    <div class="col">
+        <form method="post" enctype="multipart/form-data"
+            action="{{ url_for('sessions.setup_reclaim_save', session_id=session.id) }}" autocomplete="off">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="card">
+                <h4 class="card-header">Claim your task</h4>
+                <div class="card-body">
+
+                    <div class="alert alert-danger mb-3">
+                        ReClaim this task meaning mark this as finished editing (to note)
+                    </div>
+
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary btn-block">ReClaim !</button>
+                    </div>
+                </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

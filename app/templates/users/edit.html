@@ -5,7 +5,7 @@
     <div class="col-3"></div>
     <div class="col">
         <div class="card">
-            <h3 class="card-header">{{ 'New User' if user == None else 'Edit User' }}</h3>
+            <h3 class="card-header">{{ 'Thêm người dùng mới' if user == None else 'Thay đổi thông tin người dùng' }}</h3>
             <div class="card-body">
                 {% set user_id = 0 if user == None else user.id %}
                 <form method="post" action="{{ url_for('users.edit_save', user_id=user_id) }}" autocomplete="off">
@@ -40,7 +40,7 @@
 
                     <div class="form-group">
                         <div class="row">
-                            <div class="col-4 col-form-label"><label for="full_name">Full Name</label></div>
+                            <div class="col-4 col-form-label"><label for="full_name">Tên</label></div>
                             <div class="col">
                                 {% if user and user.ldap == 1 %}
                                 {{ user.full_name }}
@@ -53,7 +53,7 @@
 
                     <div class="form-group">
                         <div class="row">
-                            <div class="col-4 col-form-label"><label for="email">E-Mail</label></div>
+                            <div class="col-4 col-form-label"><label for="email">Email</label></div>
                             <div class="col">
                                 {% if user and user.ldap == 1 %}
                                 {{ user.email }}
@@ -65,7 +65,7 @@
                     </div>
 
                     <div class="form-group row">
-                        <label for="phong" class="col-4 col-form-label">Phong</label>
+                        <label for="phong" class="col-4 col-form-label">Phòng</label>
                         <div class="col">
                             <select class="form-control" name="phong" id="phong">
                             {% for dept in depts %}
@@ -75,19 +75,19 @@
                         </div>
                     </div>
 
-                    <div class="form-group row">
-                        <label for="phong" class="col-4 col-form-label">Chuc vu</label>
+                    <div hidden class="form-group row">
+                        <label for="phong" class="col-4 col-form-label">Chức vụ</label>
                         <div class="col">
                             <select class="form-control" name="chucvu" id="chucvu">
-                                <option {{ '' if user == None or user.chucvu != 'truong' else 'checked' }} value="truong">Trưởng phòng</option>
-                                <option {{ '' if user == None or user.chucvu != 'pho' else 'checked' }} value="pho">Phó phòng</option>
-                                <option {{ '' if user == None or user.chucvu != 'troly' else 'checked' }} value="troly">Trợ lý</option>
+                                <option {{ '' if user == None or user.chucvu != 'truong' else 'selected' }} value="truong">Trưởng phòng</option>
+                                <option {{ '' if user == None or user.chucvu != 'pho' else 'selected' }} value="pho">Phó phòng</option>
+                                <option {{ 'selected' if user == None or user.chucvu == 'troly' else '' }} value="troly">Trợ lý</option>
                             </select>
                         </div>
                     </div>
                     
                     <div class="form-group row">
-                        <label for="phone" class="col-4 col-form-label">Phone</label>
+                        <label for="phone" class="col-4 col-form-label">Điện thoại</label>
                         <div class="col">
                             <input type="text" class="form-control" name="phone" id="phone" placeholder="+84987654321" value="{{ '' if user == None else user.phone }}" />
                         </div>

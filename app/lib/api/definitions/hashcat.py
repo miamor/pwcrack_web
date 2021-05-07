@@ -18,3 +18,4 @@ class Hashcat:
         self.rule = ''
         self.mask = ''
         self.optimisedKernel = False
+        self.data = {}

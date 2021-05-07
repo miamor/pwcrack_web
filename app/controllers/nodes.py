@@ -34,6 +34,10 @@ def index():
     nodes = provider.nodes()
 
     all_nodes = nodes.get()
+    for k,node in enumerate(all_nodes):
+        print('node', node)
+        node_api = provider.node_api(node)
+        all_nodes[k].isUp = node_api.isUp()
 
     return render_template(
         'nodes/index.html',
@@ -222,6 +226,7 @@ def update_hashcat_save(node_id):
 
     nodes.update(node.id, update_dict)
 
+    flash('Node settings updated successfully', 'success')
     return redirect(url_for('nodes.view', node_id=node_id))
 
 

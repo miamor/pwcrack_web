@@ -8,7 +8,7 @@ class HashesManager:
         self.uploaded_hashes_path = uploaded_hashes_path
 
     def get_uploaded_hashes(self):
-        print('self.uploaded_hashes_path', self.uploaded_hashes_path)
+        print('[HashesManager][get_uploaded_hashes] self.uploaded_hashes_path', self.uploaded_hashes_path)
         return self.filesystem.get_files(self.uploaded_hashes_path)
 
     def is_valid_uploaded_hashfile(self, uploaded_hashfile):

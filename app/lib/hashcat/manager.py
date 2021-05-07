@@ -203,7 +203,8 @@ class HashcatManager:
 
         return status
 
-    def process_hashcat_raw_data(self, raw, screen_name, tail_screen):
+
+    def sync_hashcat_status(self, raw, screen_name, tail_screen):
         # Build base dictionary
         data = {
             'process_state': self.__detect_session_status(raw, screen_name, tail_screen),
@@ -264,3 +265,4 @@ class HashcatManager:
         ]
 
         return command
+

@@ -57,6 +57,10 @@ class SessionInstance:
     @property
     def username(self):
         return self.user.username
+    
+    @property
+    def node_id(self):
+        return self.session.node_id
 
     @property
     def terminate_at(self):
@@ -65,6 +69,18 @@ class SessionInstance:
     @property
     def user_id(self):
         return self.session.user_id
+
+    @property
+    def hints(self):
+        return self.session.hints
+
+    @property
+    def claim(self):
+        return self.session.claim
+
+    @property
+    def reclaim(self):
+        return self.session.reclaim
 
     @property
     def screen_name(self):
