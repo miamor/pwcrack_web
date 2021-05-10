@@ -1,6 +1,6 @@
 import os
 import json
-from app.lib.models.hashcat import HashcatModel
+from app.models.hashcat import HashcatModel
 
 
 class HashcatInstance:
@@ -86,14 +86,15 @@ class HashcatInstance:
         return self._hashcat_raw_data
 
     @property
-    def data(self):        
-        if self.settings.data is not None:
+    def data(self):
+        if self.settings is not None and self.settings.data is not None and len(self.settings.data) > 0:
+            print('self.settings.data', self.settings.data) 
             self._data = json.loads(self.settings.data)
         
         if self._data is None:
             # self._data = self.hashcat.sync_hashcat_status(self.hashcat_data_raw, self.session.screen_name, self.tail_screen)
             self._data = {
-                'process_state': 99, # unknown
+                'process_state': 0, # unknown
                 'all_passwords': 0,
                 'cracked_passwords': 0,
                 'time_remaining': '',

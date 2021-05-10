@@ -1,0 +1,69 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+<div class="row mt-5">
+    <!-- <div class="col-1"></div> -->
+    <div class="col">
+        <div class="card">
+            <h3 class="card-header">Danh sách Feedback</h3>
+            <div class="card-body">
+                <div class="clearfix mb-2">
+                    <div class="float-right">
+                        {% if show_all %}
+                        <a href="{{ url_for('feedbacks.index') }}">Ẩn feedback đã xử lý</a>
+                        {% else %}
+                        <a href="{{ url_for('feedbacks.index', all=1) }}">Hiện tất cả</a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID (MÃ)</th>
+                            <th>User</th>
+                            <th>Phòng</th>
+                            <th>Nội dung</th>
+                            <!-- <th>Trạng thái</th> -->
+                            <th class="text-center"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for feedback in feedbacks %}
+                        <tr>
+                            <td>{{ feedback.user.id }}</td>
+                            <td><a style="color:{{ feedback.dept.color }}" attr-title="{{ feedback.dept.name }}"
+                                    href="{{ url_for('users.view', user_id=feedback.user.id) }}">{{
+                                    feedback.user.full_name }}</a> (@{{ feedback.user.username }})</td>
+                            <td>{{ feedback.dept.name }}</td>
+                            <td>{{ feedback.content }}</td>
+                            <!-- <td>{{ 'Unprocessed' if feedback.state == 0 else 'Processed' }}</td> -->
+                            <td class="text-center">
+                                {% if feedback.state == 0 %}
+                                <form
+                                    action="{{ url_for('feedbacks.set_processed', feedback_id=feedback.id, action='processed') }}"
+                                    method="post" class="force-inline" autocomplete="off">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <a href="#" class="submit-on-click" title="This is unprocessed. Click to Mark as processed"><i
+                                            class="far fa-circle"></i></a>
+                                </form>
+                                {% else %}
+                                <form
+                                    action="{{ url_for('feedbacks.set_processed', feedback_id=feedback.id, action='unprocessed') }}"
+                                    method="post" class="force-inline" autocomplete="off">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <a href="#" class="submit-on-click" title="This is processed. Click to Mark as unprocessed"><i
+                                            class="fas fa-check"></i></a>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- <div class="col-1"></div> -->
+</div>
+{% endblock %}

@@ -1,6 +1,6 @@
 import re
 import os
-from app.lib.models.user import UserModel
+from app.models.users import UserModel
 from app.lib.users.instance import UserInstance
 from app import db
 from sqlalchemy import and_, or_, desc, func

@@ -1,7 +1,7 @@
 import random
 import string
 from sqlalchemy import and_
-from app.lib.models.api import ApiKeys
+from app.models.api import ApiKeys
 from app import db
 
 

@@ -4,8 +4,8 @@ import shlex
 
 from sqlalchemy import and_, desc
 
-from app.lib.models.system import ShellLogModel
-from app.lib.models.user import UserModel
+from app.models.system import ShellLogModel
+from app.models.users import UserModel
 from app import db
 
 

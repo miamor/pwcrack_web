@@ -1,5 +1,5 @@
 from sqlalchemy import and_
-from app.lib.models.user import UserSettings
+from app.models.users import UserSettings
 from app import db
 
 

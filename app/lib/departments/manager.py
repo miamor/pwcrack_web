@@ -1,6 +1,6 @@
 import re
 import os
-from app.lib.models.department import DepartmentModel
+from app.models.department import DepartmentModel
 from app.lib.departments.instance import DepartmentInstance
 from app import db
 from sqlalchemy import and_, or_, desc

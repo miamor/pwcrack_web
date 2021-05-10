@@ -1,7 +1,7 @@
 import os
-from app.lib.models.department import DepartmentModel
-from app.lib.models.user import UserModel
-from app.lib.models.hashcat import HashcatHistoryModel
+from app.models.department import DepartmentModel
+from app.models.users import UserModel
+from app.models.hashcat import HashcatHistoryModel
 from sqlalchemy import desc
 import linecache
 

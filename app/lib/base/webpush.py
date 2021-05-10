@@ -1,7 +1,7 @@
 import datetime
 import json
 from app import db
-from app.lib.models.webpush import WebPushSubscriptionModel, WebPushLogModel
+from app.models.webpush import WebPushSubscriptionModel, WebPushLogModel
 from pywebpush import webpush, WebPushException
 
 

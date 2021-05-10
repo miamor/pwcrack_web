@@ -59,6 +59,8 @@ def setup_hashes(session_id):
     print('[controllers/sessions][setup_hashes] uploaded_filename_this_session', uploaded_filename_this_session)
     print('[controllers/sessions][setup_hashes] session_uploaded_hashes', session_uploaded_hashes)
 
+    # print('[controllers/sessions][setup_hashes] session.hashcat.state', session.hashcat.state)
+
     return render_template(
         'sessions/setup/hashes.html',
         session=session,
@@ -215,11 +217,12 @@ def setup_hint_save(session_id):
     }
     sessions.update(session_id, update_dict)
 
-    if current_user.admin:
-        return redirect(url_for('sessions.setup_node', session_id=session_id))
-    elif not session.claim:
-        return redirect(url_for('sessions.setup_claim', session_id=session_id))
-    return redirect(url_for('sessions.view', session_id=session_id))
+    # if current_user.admin:
+    #     return redirect(url_for('sessions.settings', session_id=session_id))
+    # elif not session.claim:
+    #     return redirect(url_for('sessions.setup_claim', session_id=session_id))
+    # return redirect(url_for('sessions.view', session_id=session_id))
+    return redirect(url_for('sessions.settings', session_id=session_id))
     
 
 
@@ -233,9 +236,9 @@ def settings(session_id):
         flash('Access Denied', 'error')
         return redirect(url_for('home.index'))
 
-    if not current_user.admin:
-        flash('Permission denied', 'error')
-        return redirect(url_for('sessions.view', session_id=session_id))
+    # if not current_user.admin:
+    #     flash('Permission denied', 'error')
+    #     return redirect(url_for('sessions.view', session_id=session_id))
 
     user_id = 0 if current_user.admin else current_user.id
     session = sessions.get(user_id=user_id, session_id=session_id)[0]
@@ -260,7 +263,10 @@ def settings_save(session_id):
         return redirect(url_for('home.index'))
 
     if not current_user.admin and session.claim:
-        flash('You have claimed this task. You cannot edit hashes anymore.', 'error')
+        from flask import Markup
+        html = Markup("You have claimed this task. You cannot edit hashes or settings anymore. You can still edit <a href=\"{}\">hints</a>, however.".format(url_for('sessions.setup_hint', session_id=session.id)))
+        flash(html, 'error')
+        # flash('You have claimed this task. You cannot edit hashes or settings anymore. You can still edit hints, however.', 'error')
         return redirect(url_for('sessions.settings', session_id=session_id))
 
     termination_date = request.form['termination_date'].strip()
@@ -285,7 +291,12 @@ def settings_save(session_id):
         sessions.sync_settings_to_node(session_id)
 
     # flash('Settings saved', 'success')
-    return redirect(url_for('sessions.setup_node', session_id=session_id))
+    if current_user.admin:
+        return redirect(url_for('sessions.setup_node', session_id=session_id))
+    elif not session.claim:
+        return redirect(url_for('sessions.setup_claim', session_id=session_id))
+    else:
+        return redirect(url_for('sessions.view', session_id=session_id))
 
 
 

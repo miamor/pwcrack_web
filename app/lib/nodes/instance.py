@@ -1,7 +1,7 @@
 import os
-from app.lib.models.nodes import NodeModel
-from app.lib.models.sessions import SessionModel
-from app.lib.models.hashcat import HashcatHistoryModel
+from app.models.nodes import NodeModel
+from app.models.sessions import SessionModel
+from app.models.hashcat import HashcatHistoryModel
 from sqlalchemy import desc
 import linecache
 

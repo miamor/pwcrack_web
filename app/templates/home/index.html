@@ -29,7 +29,7 @@
     <div class="col">
         <div class="card">
             <h3 class="card-header">
-                <a href="{{ url_for('home.synchronize_from_nodes') }}" data-action="synchronize_from_nodes" title="Synchronize" class="float-right ml-2 btn btn-primary"><i class="fas fa-sync"></i> Synchronize</a>
+                <a href="{{ url_for('home.synchronize_from_nodes') }}" data-action="synchronize_from_nodes" title="Đồng bộ với các node" class="float-right ml-2 btn btn-primary"><i class="fas fa-sync"></i> Đồng bộ</a>
                 Tác vụ
             </h3>
             <div class="card-body">
@@ -74,7 +74,7 @@
                             {{ template().get_hashcat_running_text(session.hashcat.state) }}
                         </td>
                         {% elif session.claim == 1 %}
-                        <td class="table-danger" title="">
+                        <td>
                             No hashcat instance
                         </td>
                         {% else %}

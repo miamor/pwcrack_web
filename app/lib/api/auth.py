@@ -1,7 +1,7 @@
 from flask import request
 from flask_login import login_user
-from app.lib.models.api import ApiKeys
-from app.lib.models.user import UserModel
+from app.models.api import ApiKeys
+from app.models.users import UserModel
 from sqlalchemy import and_
 
 

@@ -55,7 +55,6 @@ def index():
     )
 
 
-
 @bp.route('/synchronize_from_nodes', methods=['GET'])
 def synchronize_from_nodes():
     provider = Provider()

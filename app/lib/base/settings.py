@@ -1,4 +1,4 @@
-from app.lib.models.config import ConfigModel
+from app.models.config import ConfigModel
 from app import db
 
 

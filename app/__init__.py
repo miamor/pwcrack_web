@@ -26,9 +26,9 @@ def create_app(config_class=None):
     app = Flask(__name__, instance_path=data_instance_path, instance_relative_config=True)
 
 
-    # import logging
-    # log = logging.getLogger('werkzeug')
-    # log.setLevel(logging.ERROR)
+    import logging
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)
 
 
     try:
@@ -73,14 +73,17 @@ def create_app(config_class=None):
     from app.controllers.departments import bp as dep_bp
     app.register_blueprint(dep_bp, url_prefix='/departments')
 
-    from app.controllers.nodes import bp as node_bp
-    app.register_blueprint(node_bp, url_prefix='/nodes')
+    from app.controllers.nodes import bp as nodes_bp
+    app.register_blueprint(nodes_bp, url_prefix='/nodes')
 
     from app.controllers.sessions import bp as sessions_bp
     app.register_blueprint(sessions_bp, url_prefix='/sessions')
 
     from app.controllers.account import bp as account_bp
     app.register_blueprint(account_bp, url_prefix='/account')
+
+    from app.controllers.feedbacks import bp as feedbacks_bp
+    app.register_blueprint(feedbacks_bp, url_prefix='/feedbacks')
 
     from app.controllers.install import bp as install_bp
     app.register_blueprint(install_bp, url_prefix='/install')
@@ -159,4 +162,4 @@ def create_app(config_class=None):
 
 
 # This has to be at the bottom.
-from app.lib.models import user, config, sessions, nodes, hashcat, api, system, webpush
+from app.models import users, config, sessions, nodes, hashcat, api, system, webpush

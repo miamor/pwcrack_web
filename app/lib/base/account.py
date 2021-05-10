@@ -1,5 +1,5 @@
 from sqlalchemy import desc, and_, func
-from app.lib.models.user import UserModel, UserLogins
+from app.models.users import UserModel, UserLogins
 from app import db
 import flask_bcrypt as bcrypt
 import datetime

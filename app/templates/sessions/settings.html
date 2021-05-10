@@ -22,10 +22,10 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
             <div class="card">
-                <h4 class="card-header">Settings</h4>
+                <h4 class="card-header">Cài đặt</h4>
                 <div class="card-body">
 
-                    <label>Session will terminate on</label>
+                    <label>{{'Hủy session vào ngày' if current_user.admin else 'Tôi cần trước ngày'}}</label>
                     <div class="row">
                         <div class="col">
                             <div class="form-group">
@@ -50,7 +50,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="notifications_enabled">Enable Push Notifications</label>
+                        <label for="notifications_enabled">Gửi thông báo về trình duyệt</label>
                         <div class="custom-control custom-switch float-right">
                             <input name="notifications_enabled" type="checkbox" class="custom-control-input" id="notifications_enabled" value="1" {{ "checked='checked'" if session.notifications_enabled else '' }}>
                             <label class="custom-control-label" for="notifications_enabled"></label>

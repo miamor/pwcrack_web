@@ -1,16 +1,12 @@
-{% if current_user.admin != true and (session.hints == None or session.hints|length == 0) %}
 <div class="row mt-5">
     <div class="col">
-        <div class="alert alert-info">No hints submitted.<br/> Submit information about the target or related to the document might help in cracking passwords.</div>
-    </div>
-</div>
-{% endif %}
+        {% if current_user.admin != true and session.hashes_in_file > 0 and (session.hints == None or
+        session.hints|length == 0) and active_nav != 'hint' %}
+        <div class="alert alert-info">No hints submitted.<br /> Submit information about the target or related to the
+            document might help in cracking passwords.</div>
+        {% endif %}
 
-<div class="row mt-5">
-    <div class="col">
-        {% if session.hashes_in_file == 0 %}
-        <div class="alert alert-warning">No hashes submitted.</div>
-        {% elif session.claim == false %}
+        {% if session.claim == false %}
         <div class="alert alert-warning">This task is not claimed yet.<br />
             {% if current_user.admin != true %}
             <a href="{{url_for('sessions.setup_claim', session_id=session.id)}}">Claim</a> your task so that it can be
@@ -42,8 +38,10 @@
                     {% else %}
                     <span class="badge badge-pill badge-default" style="vertical-align: top">Not claimed</span>
                     {% endif %}
+                    {% if current_user.admin == 1 %}
                     <span class="small">by <a
                             href="{{url_for('users.view', user_id=session.user_id)}}">@{{session.user.username}}</a></span>
+                    {% endif %}
                 </div>
             </div>
 

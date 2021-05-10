@@ -1,7 +1,7 @@
 from flask import Blueprint
 from flask_login import login_user, logout_user, current_user
 from flask import render_template, redirect, url_for, flash, request, session
-from app.lib.models.user import UserModel
+from app.models.users import UserModel
 from sqlalchemy import and_, func
 from app.lib.base.provider import Provider
 from werkzeug.urls import url_parse

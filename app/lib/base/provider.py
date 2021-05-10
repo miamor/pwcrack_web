@@ -3,6 +3,7 @@ from app.lib.session.manager import SessionManager
 from app.lib.base.healthcheck import HealthCheck
 from app.lib.hashcat.manager import HashcatManager
 from app.lib.nodes.manager import NodeManager
+from app.lib.feedbacks.manager import FeedbacksManager
 from app.lib.users.manager import UsersManager
 from app.lib.departments.manager import DepartmentsManager
 from app.lib.base.john import John
@@ -38,6 +39,9 @@ class Provider:
     
     def nodes(self):
         return NodeManager()
+    
+    def feedbacks(self):
+        return FeedbacksManager()
 
     def sessions(self):
         session = SessionManager(

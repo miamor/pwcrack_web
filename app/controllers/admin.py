@@ -3,7 +3,7 @@ from flask_login import current_user, login_required
 from flask import render_template, redirect, url_for, flash, request
 import os
 from app.lib.base.provider import Provider
-from app.lib.models.user import UserModel
+from app.models.users import UserModel
 
 
 bp = Blueprint('admin', __name__)
